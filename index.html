@@ -592,6 +592,8 @@ addEventListener('resize',()=>{const m=matchMedia('(max-width:640px)').matches;i
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 setInterval(tick,1000);
 setInterval(refresh,20000);
+// מעירים את השרת כבר כשהדף נפתח, כדי שהכניסה תהיה מהירה
+try{if(API_URL)fetch(API_URL,{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}
 // מציגים מיד את המצב האחרון שנשמר במכשיר, ומעדכנים מהשרת ברקע
 try{const c=JSON.parse(localStorage.getItem('poker-view'));if(cred&&c&&c.phone===cred.phone){V=c.v;skew=c.skew;render();setSync(true)}}catch(e){}
 if(cred)api('state').then(render).catch(e=>{setSync(false);if(/ברשימה|שגויה/.test(e.message)){toast(e.message);logout()}else if(!V){toast(e.message);logout()}else toast(e.message)});else render();
