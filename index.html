@@ -223,7 +223,6 @@ footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
 .tgbtn svg{width:20px;height:20px}
 .loading{text-align:center;color:var(--muted);padding:40px 0}
 .roster input{min-width:96px}
-.roster input[data-f="email"]{min-width:150px}
 .roster .save{background:#123826;color:#9ff0c8;padding:3px 10px;border:1px solid #1f6b47}
 .roster .wa{color:#25d366;text-decoration:none;font-size:13px;white-space:nowrap}
 </style>
@@ -237,7 +236,7 @@ footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
 
 <div id="sync" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:12px;z-index:40;font-size:12px;color:var(--muted);background:#000a;padding:3px 10px;border-radius:999px" hidden>⟳ מתעדכן…</div>
 <main class="wrap" id="app"><div class="loading">מתחבר לשרת…<br><span class="small">בכניסה הראשונה זה יכול לקחת כמה שניות</span></div></main>
-<footer>ערב פוקר · השעה לפי שעון ישראל מהשרת</footer>
+
 
 <div id="modal"><div class="box"><h3 id="mTitle"></h3><div class="body" id="mBody"></div><div class="row" id="mBtns"></div></div></div>
 <div id="toast"></div>
@@ -457,7 +456,7 @@ function tgView(){
   const linked=V.me?V.me.tgLinked:V.admin.tgLinked, link=V.me?V.me.tgLink:V.admin.tgLink;
   if(linked)return'';
   if(!link)return'';
-  return `<div class="card tgcard"><div><b>🔔 התראות לטלפון</b><div class="muted small">לוחצים פעם אחת, ובטלגרם לוחצים Start. תוך דקה תקבל הודעת אישור.${V.admin?'':' אין לך טלגרם? בקש מהמנהל לרשום לך מייל.'}</div></div>
+  return `<div class="card tgcard"><div><b>🔔 התראות לטלפון</b><div class="muted small">פעם אחת בלבד: לוחצים כאן, ובטלגרם לוחצים Start. מיד תקבל הודעת אישור, ומאז כל ההתראות מגיעות לטלגרם.</div></div>
     <a class="tgbtn" href="${esc(link)}" target="_blank" rel="noopener">${TG_SVG}<span>חבר טלגרם</span></a></div>`;
 }
 function tableView(anon){
@@ -513,7 +512,7 @@ function inviteText(p){
 function adminView(){
   const A=V.admin;
   const rows=A.players.map(p=>`<tr data-row="${p.id}"><td><input data-f="name" value="${esc(p.name)}"></td><td><input data-f="phone" value="${esc(p.phone)}" dir="ltr"></td>
-<td><input data-f="email" value="${esc(p.email)}" dir="ltr" placeholder="מייל (לא חובה)"></td>
+
     <td>${A.isMain?`<div style="display:flex;gap:6px;align-items:center"><label class="small" style="display:flex;gap:4px;align-items:center;color:var(--text);margin:0;white-space:nowrap"><input type="checkbox" data-f="admin" ${p.admin?'checked':''} style="width:auto;min-width:0"> מנהל</label><input data-f="apin" type="text" inputmode="numeric" maxlength="8" value="${esc(p.adminPin||'')}" placeholder="סיסמה" dir="ltr" style="min-width:70px;width:70px" ${p.admin?'':'hidden'}></div>`:(p.admin?'<span class="small">👑 מנהל</span>':'')}</td>
     <td class="small">${p.tg?'<span class="ok" title="מחובר לטלגרם">✓ TG</span>':'<span class="muted">–</span>'}</td>
     <td><button class="save" data-save="${p.id}">שמור</button></td>
@@ -527,15 +526,14 @@ function adminView(){
       <div><label for="gOpenD">פתיחת ההרשמה ${V.openCustom?'(מועד שקבעת)':'(ברירת מחדל: חמישי 16:00)'}</label><div style="display:flex;gap:6px"><select id="gOpenD" style="flex:2">${dateOptions(ilInput(V.openAt).slice(0,10))}</select><select id="gOpenH" style="flex:1" dir="ltr">${numOptions(24,1,+ilInput(V.openAt).slice(11,13))}</select><select id="gOpenM" style="flex:1" dir="ltr">${numOptions(60,5,+ilInput(V.openAt).slice(14,16))}</select></div></div>
       <div><label>שעת הגעה (לפי העונה)</label><input disabled value="${V.arrival} · ${V.season}"></div>
       <div style="grid-column:1/-1"><label for="gLoc">כתובת המשחק (מוצגת רק למי שיש לו מקום בשולחן)</label><input id="gLoc" value="${esc(V.location||'')}" placeholder="רחוב, מספר, עיר"></div>
-      <div style="grid-column:1/-1"><label for="aEmail">המייל שלך לעדכונים (אם לא חיברת טלגרם)</label><input id="aEmail" value="${esc(A.email)}" dir="ltr"></div>
     </div>
     <p class="muted small">ההרשמה תיפתח ${esc(fmtDT(V.openAt))} · ביטול בלי עונש עד ${esc(fmtDT(V.deadline))} · ביום ראשון בבוקר מתחיל שבוע חדש אוטומטית</p>
     <div class="row"><button class="btn btn-gold" id="saveGame">שמור</button>${isOpen()?'':'<button class="btn btn-ok" id="openNow">🔓 פתח הרשמה עכשיו</button>'}${V.openCustom?'<button class="btn btn-ghost" id="resetOpen">↩️ פתיחה ביום חמישי 16:00</button>':''}<button class="btn btn-ghost" id="newWeek">🔁 התחל שבוע חדש עכשיו</button></div>
   </div>
   <div class="card admin"><h2>👥 שחקנים מורשים (${A.players.length})</h2>
     <p class="muted small">אין הגבלה על מספר השחקנים. רק טלפון שמופיע כאן יכול להיכנס. כדי לתת לשחקן גישה לניהול, סמן "מנהל", קבע לו סיסמה ולחץ שמור. אם גם אתה משחק, הוסף את עצמך לרשימה. "שלח קישור" פותח וואטסאפ עם הודעה מוכנה לשחקן.</p>
-    <div style="overflow-x:auto"><table class="roster"><thead><tr><th>שם</th><th>טלפון</th><th>מייל</th><th>הרשאה</th><th>התראות</th><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="row" style="margin-top:10px"><input id="newName" placeholder="שם" style="flex:1;min-width:110px"><input id="newPhone" placeholder="טלפון" dir="ltr" style="flex:1;min-width:110px"><input id="newEmail" placeholder="מייל (לא חובה)" dir="ltr" style="flex:1;min-width:140px"><button class="btn btn-gold" id="addP">הוסף</button></div>
+    <div style="overflow-x:auto"><table class="roster"><thead><tr><th>שם</th><th>טלפון</th><th>הרשאה</th><th>התראות</th><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="row" style="margin-top:10px"><input id="newName" placeholder="שם" style="flex:1;min-width:110px"><input id="newPhone" placeholder="טלפון" dir="ltr" style="flex:1;min-width:110px"><button class="btn btn-gold" id="addP">הוסף</button></div>
   </div>`;
 }
 function bindMain(){
@@ -551,16 +549,16 @@ function bindMain(){
   document.querySelectorAll('[data-unsusp]').forEach(b=>b.onclick=()=>modal('לבטל השהיה?',`${b.dataset.name} יוכל להירשם שוב. כדאי לעשות את זה רק אחרי התייעצות עם הצוות.`,[
     {t:'בטל השהיה',c:'btn-gold',f:()=>act('unsuspend',{id:b.dataset.unsusp})},{t:'חזרה',c:'btn-ghost'}]));
   let openDirty=false;['#gOpenD','#gOpenH','#gOpenM'].forEach(id=>{const el=$(id);if(el)el.onchange=()=>{openDirty=true}});
-  on('#saveGame',()=>act('saveGame',Object.assign({date:$('#gDate').value,location:$('#gLoc').value,email:$('#aEmail').value},openDirty?{openAt:`${$('#gOpenD').value}T${pad($('#gOpenH').value)}:${pad($('#gOpenM').value)}`}:{})));
+  on('#saveGame',()=>act('saveGame',Object.assign({date:$('#gDate').value,location:$('#gLoc').value},openDirty?{openAt:`${$('#gOpenD').value}T${pad($('#gOpenH').value)}:${pad($('#gOpenM').value)}`}:{})));
   on('#openNow',()=>modal('לפתוח הרשמה עכשיו?','כל השחקנים יקבלו התראה שההרשמה נפתחה, ומי שמאשר ראשון תופס מקום.',[{t:'פתח עכשיו',c:'btn-gold',f:()=>act('openNow')},{t:'ביטול',c:'btn-ghost'}]));
   on('#resetOpen',()=>act('resetOpen'));
   on('#newWeek',()=>modal('להתחיל שבוע חדש?','תאריך המשחק יעבור למוצאי השבת הבא וכל התשובות יימחקו. ההשהיות נשארות.',[{t:'כן',c:'btn-gold',f:()=>act('newWeek')},{t:'ביטול',c:'btn-ghost'}]));
   document.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{const tr=b.closest('tr'),g=f=>tr.querySelector(`[data-f="${f}"]`).value;
-    act('savePlayer',{player:{id:b.dataset.save,name:g('name'),phone:g('phone'),email:g('email'),admin:!!(tr.querySelector('[data-f="admin"]')||{}).checked,adminPin:(tr.querySelector('[data-f="apin"]')||{}).value}})});
+    act('savePlayer',{player:{id:b.dataset.save,name:g('name'),phone:g('phone'),admin:!!(tr.querySelector('[data-f="admin"]')||{}).checked,adminPin:(tr.querySelector('[data-f="apin"]')||{}).value}})});
   document.querySelectorAll('[data-f="admin"]').forEach(c=>c.onchange=()=>{const i=c.closest('tr').querySelector('[data-f="apin"]');i.hidden=!c.checked;if(c.checked)i.focus()});
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>modal('להסיר שחקן?',`${b.dataset.name} יוסר מהרשימה ומהשולחן.`,[
     {t:'הסר',c:'btn-bad',f:()=>act('deletePlayer',{id:b.dataset.del})},{t:'ביטול',c:'btn-ghost'}]));
-  on('#addP',()=>act('savePlayer',{player:{name:$('#newName').value,phone:$('#newPhone').value,email:$('#newEmail').value}}));
+  on('#addP',()=>act('savePlayer',{player:{name:$('#newName').value,phone:$('#newPhone').value}}));
 }
 function askCancel(){
   const me=V.me,late=me.status==='seat'&&!me.promoted&&isLate();
