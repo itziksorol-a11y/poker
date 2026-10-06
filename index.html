@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ערב פוקר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Secular+One&family=Cinzel:wght@700&family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d12; --panel:#151922; --panel2:#1c212c; --line:#2a3140; --text:#eef0f4; --muted:#98a1b2;
+  --gold:#d6ae5c; --gold2:#f4d78f; --ok:#3ecf8e; --warn:#f2a93b; --bad:#ef5a5a; --wa:#25d366;
+  --felt:#0f6b4c; --felt-d:#063524;
+}
+body[data-felt="burgundy"]{--felt:#8a1a2b; --felt-d:#3e0912}
+body[data-felt="blue"]{--felt:#1d4f8f; --felt-d:#0a1f3e}
+body[data-felt="green"]{--felt:#0f6b4c; --felt-d:#063524}
+body[data-felt="black"]{--felt:#2c2f36; --felt-d:#0e0f12}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 50% -10%,#1b2030,var(--bg));background-color:var(--bg);color:var(--text);
+  font-family:Heebo,system-ui,sans-serif;font-size:15px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+input,select,textarea{font:inherit;color:var(--text);background:#0f1218;border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+h1,h2,h3{font-family:"Secular One",Heebo,sans-serif;font-weight:400;margin:0}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* demo bar */
+#demobar{position:fixed;left:0;right:0;bottom:0;z-index:45;background:repeating-linear-gradient(45deg,#2a2112,#2a2112 12px,#241c0f 12px,#241c0f 24px);border-top:1px solid #4b3a17;font-size:13px;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -10px 30px #000a}
+.demo-note{flex-basis:100%;margin:0;color:#e9dcc0;line-height:1.5}
+#demoFab{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:14px;z-index:44;background:#3a2e17;color:var(--gold2);border:1px solid #5a4620;border-radius:999px;padding:8px 14px;font-size:13px;box-shadow:0 6px 18px #0009}
+#demobar .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:8px;padding-bottom:8px}
+#demobar b{color:var(--gold2)}
+#demobar select{width:auto;padding:4px 6px;font-size:13px}
+#demobar button{background:#3a2e17;color:var(--gold2);padding:4px 10px;font-size:13px;border:1px solid #5a4620}
+#demobar button:hover{background:#4a3a1c}
+#simclock{font-variant-numeric:tabular-nums;background:#000a;padding:3px 8px;border-radius:6px;color:#fff}
+
+/* header */
+header{padding:18px 0 6px}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .suit{font-size:28px;color:var(--gold)}
+.brand h1{font-size:26px;letter-spacing:.5px}
+.userchip{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:14px}
+.userchip button{background:transparent;color:var(--muted);padding:0 4px}
+
+.infobar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px;display:inline-flex;gap:6px;align-items:center}
+.pill a{color:var(--gold2)}
+
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0}
+.card h2{font-size:19px;margin-bottom:8px}
+.btn{padding:10px 18px;font-weight:700}
+.btn-gold{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#2a1d05;box-shadow:0 4px 14px #d6ae5c44}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn-bad{background:#3a1518;color:#ffb3b3;border:1px solid #6b2328}
+.btn-ok{background:#123826;color:#9ff0c8;border:1px solid #1f6b47}
+.btn-big{font-size:20px;padding:14px 34px;border-radius:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* hero */
+.hero{text-align:center;padding:22px 16px}
+.hero .big{font-size:22px;font-weight:700;margin:4px 0}
+.hero.alert{border-color:#6b5520;background:linear-gradient(180deg,#2c2410,#1a160c)}
+.hero.bad{border-color:#6b2328;background:linear-gradient(180deg,#2a1215,#170b0c)}
+.countdown{display:flex;justify-content:center;gap:10px;margin:12px 0 4px}
+.countdown div{background:#0b0d12;border:1px solid var(--line);border-radius:12px;min-width:66px;padding:8px 6px}
+.countdown b{display:block;font-size:30px;font-variant-numeric:tabular-nums;color:var(--gold2);line-height:1.1}
+.countdown span{font-size:12px;color:var(--muted)}
+.hg{width:64px;height:104px;display:block;margin:0 auto 6px;animation:hgflip 8s infinite}
+.hg .st{animation:drainTop 8s linear infinite}
+.hg .sb{animation:fillBot 8s linear infinite}
+.hg .stream{animation:stream 8s linear infinite}
+@keyframes drainTop{0%{transform:translateY(0)}92%,100%{transform:translateY(30px)}}
+@keyframes fillBot{0%{transform:translateY(0)}92%,100%{transform:translateY(-26px)}}
+@keyframes stream{0%,90%{opacity:1}92%,100%{opacity:0}}
+@keyframes hgflip{0%,93%{transform:rotate(0)}100%{transform:rotate(180deg)}}
+
+/* ===== table ===== */
+.table-wrap{position:relative;width:100%;aspect-ratio:16/9.4;margin:18px 0 8px}
+.table{position:absolute;inset:8% 7%;border-radius:999px;
+  background:radial-gradient(ellipse at 50% 25%,#3b3b40 0%,#1a1a1d 55%,#09090a 100%);
+  box-shadow:0 40px 80px #000c,0 10px 20px #0008,inset 0 3px 2px #ffffff22,inset 0 -14px 30px #000a}
+.table::before{content:"";position:absolute;inset:1.6%;border-radius:999px;border:1.5px dashed #ffffff1c}
+.wood{position:absolute;inset:5.2%;border-radius:999px;
+  background:repeating-linear-gradient(100deg,#00000018 0 3px,transparent 3px 9px),
+             linear-gradient(160deg,#a8692f,#6b3a14 45%,#8a4f20 70%,#4d270b);
+  box-shadow:inset 0 2px 3px #ffffff40,inset 0 -3px 6px #0008,0 0 0 2px #0006}
+.felt{position:absolute;inset:7.2%;border-radius:999px;overflow:hidden;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .32 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    radial-gradient(ellipse at 50% 45%,var(--felt) 0%,var(--felt) 35%,var(--felt-d) 100%);
+  box-shadow:inset 0 0 40px #000a,inset 0 0 0 3px #00000055}
+.felt::after{content:"";position:absolute;inset:13%;border-radius:999px;border:2px solid #ffffff22}
+.felt-center{position:absolute;inset:22% 11% 16%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none}
+.felt-logo{font-family:Cinzel,"Times New Roman",serif;font-weight:700;color:#ffffff2e;font-size:clamp(20px,4.6vw,52px);letter-spacing:.25em;direction:ltr;padding-left:.25em;margin-bottom:clamp(-4px,-.5vw,0px);text-shadow:0 1px 0 #0004,0 -1px 0 #ffffff10;line-height:1}
+.fan{position:relative;width:clamp(95px,18vw,200px);aspect-ratio:1.15/1;direction:ltr;margin-top:clamp(2px,1vw,10px)}
+.fc{position:absolute;left:50%;bottom:16%;width:44%;transform-origin:50% 118%;transform:translateX(-50%) rotate(var(--r));filter:drop-shadow(-3px 4px 5px #0008)}
+.fc svg{width:100%;height:auto;display:block}
+.pcard{width:clamp(22px,4.4vw,44px);aspect-ratio:5/7;background:linear-gradient(160deg,#fff,#e9e9e9);border-radius:4px;box-shadow:0 2px 4px #0007;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(9px,1.6vw,16px);color:#111;direction:ltr}
+.pcard.r{color:#c2121f}
+.pot{display:flex;gap:4px;align-items:flex-end;margin-top:4px}
+.stack{display:flex;flex-direction:column-reverse}
+.chip{width:clamp(14px,2.4vw,24px);height:clamp(4px,.6vw,6px);border-radius:50%;margin-top:-1px;box-shadow:0 1px 0 #0006}
+.chip.c1{background:repeating-linear-gradient(90deg,#c62828 0 4px,#fff 4px 6px)}
+.chip.c2{background:repeating-linear-gradient(90deg,#1e3a8a 0 4px,#fff 4px 6px)}
+.chip.c3{background:repeating-linear-gradient(90deg,#111 0 4px,#d6ae5c 4px 6px)}
+.chip.c4{background:repeating-linear-gradient(90deg,#15803d 0 4px,#fff 4px 6px)}
+.felt-loc{position:relative;z-index:1;color:#ffffffb0;font-size:clamp(10px,1.4vw,13px);background:#0003;padding:2px 10px;border-radius:999px;max-width:80%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:clamp(54px,11vw,96px);z-index:2}
+.avatar{width:clamp(36px,6.4vw,58px);aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:clamp(13px,2.2vw,20px);position:relative;
+  background:radial-gradient(circle at 35% 30%,#3a4150,#151922);border:3px solid #555c6b;box-shadow:0 6px 14px #000b}
+.seat.in .avatar{border-color:var(--gold);background:radial-gradient(circle at 35% 30%,#4a3f26,#1c160a);color:var(--gold2)}
+.seat.pending .avatar{border-color:var(--warn);animation:pulse 1.4s infinite;color:var(--warn)}
+.seat.me .avatar{box-shadow:0 0 0 3px #fff,0 0 22px var(--gold)}
+.seat.empty .avatar{background:#0007;border:2px dashed #ffffff40;color:#ffffff50;box-shadow:none}
+.seat .num{position:absolute;top:-6px;inset-inline-end:-6px;background:#000;border:1px solid #555;border-radius:999px;font-size:10px;min-width:18px;height:18px;line-height:16px;text-align:center;color:#ccc;font-weight:700}
+.seat .name{margin-top:3px;font-size:clamp(10px,1.5vw,13px);background:#000c;border:1px solid #ffffff1a;padding:1px 8px;border-radius:999px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.seat.empty .name{color:#ffffff60;background:#0006}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #f2a93b88}50%{box-shadow:0 0 0 10px #f2a93b00}}
+.dealer{position:absolute;width:clamp(16px,2.6vw,26px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#cfcfcf);
+  color:#111;font-weight:900;font-size:clamp(9px,1.3vw,13px);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px #0008;transform:translate(-50%,-50%);z-index:1}
+.legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:5px;vertical-align:middle}
+
+@media (max-width:640px){
+  .table-wrap{aspect-ratio:3/4.3}
+  .fan{width:46vw}
+  .felt-logo{font-size:9vw}
+  .countdown div{min-width:56px}
+  .countdown b{font-size:24px}
+  .brand h1{font-size:21px}
+}
+
+/* lists */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.list h3{font-size:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.list h3 .cnt{font-family:Heebo;font-size:13px;color:var(--muted)}
+.list ol,.list ul{margin:0;padding-inline-start:22px}
+.list li{padding:3px 0;border-bottom:1px solid #ffffff0a}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;margin-inline-start:6px;vertical-align:middle}
+.tag.warn{background:#3a2a0f;color:var(--warn)}
+.tag.bad{background:#3a1518;color:#ff9c9c}
+.tag.me{background:#2c2410;color:var(--gold2)}
+.list .ph{color:var(--muted);font-size:12px;direction:ltr;display:inline-block;margin-inline-start:6px}
+.list .empty{color:var(--muted);font-size:13px;list-style:none;margin-inline-start:-22px}
+
+.rules li{margin:4px 0}
+.rules b{color:var(--gold2)}
+
+/* admin */
+.admin h2 .badge{font-family:Heebo;font-size:12px;background:#2c2410;color:var(--gold2);padding:2px 8px;border-radius:999px;margin-inline-start:8px;vertical-align:middle}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.form-grid{grid-template-columns:1fr}}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.roster{width:100%;border-collapse:collapse;font-size:14px}
+.roster td,.roster th{padding:5px 4px;border-bottom:1px solid #ffffff0d;text-align:start}
+.roster input{padding:5px 8px}
+.roster .x{background:transparent;color:#ff8f8f;padding:2px 8px}
+.ok{color:var(--ok)}
+
+/* login */
+.login{max-width:420px;margin:30px auto;text-align:center}
+.login input{font-size:20px;text-align:center;direction:ltr;margin:10px 0}
+.err{color:#ff9c9c;min-height:22px}
+
+.login .pinrow{display:flex;gap:8px}
+.login .pinrow input{margin:4px 0}
+
+/* three choices */
+.choices{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.choice{min-width:120px;padding:12px 18px;border-radius:14px;font-weight:700;font-size:17px;background:#0f1218;color:var(--text);border:2px solid var(--line)}
+.choice:hover{border-color:#ffffff40}
+.choice.go{border-color:#6b5520}
+.choice.go.sel{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#2a1d05;border-color:var(--gold)}
+.choice.wait.sel{background:#3a2a0f;color:var(--warn);border-color:var(--warn)}
+.choice.no.sel{background:#3a1518;color:#ffb3b3;border-color:#a33}
+.status-line{font-size:14px;color:var(--muted);margin-top:10px}
+
+/* location */
+.loc{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.loc .addr{font-size:20px;font-weight:700}
+.waze{display:inline-flex;align-items:center;gap:10px;background:#33ccff;color:#05202b;font-weight:900;font-size:18px;padding:10px 22px 10px 16px;border-radius:999px;text-decoration:none;box-shadow:0 6px 18px #33ccff40}
+.waze svg{width:34px;height:34px}
+.loc-locked{color:var(--muted);font-size:14px}
+
+/* modal + toast */
+#modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#modal.open{display:flex}
+#modal .box{background:var(--panel2);border:1px solid var(--line);border-radius:16px;max-width:430px;width:100%;padding:20px;box-shadow:0 30px 60px #000}
+#modal h3{font-size:20px;margin-bottom:8px}
+#modal .body{color:#d8dce4;margin-bottom:16px;white-space:pre-line}
+#modal .row{justify-content:flex-start}
+#toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%);background:#000e;border:1px solid var(--line);padding:9px 16px;border-radius:999px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+.push{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-160%);width:min(380px,calc(100vw - 32px));z-index:70;transition:transform .35s ease}
+.push.show{transform:translate(-50%,0)}
+.push .lbl{font-size:11px;color:var(--gold2);text-align:center;margin-bottom:4px;text-shadow:0 1px 2px #000}
+.push .ios{display:flex;gap:10px;align-items:flex-start;background:#f3f3f6f2;color:#111;border-radius:18px;padding:11px 13px;box-shadow:0 12px 30px #000b}
+.push .ic{width:38px;height:38px;border-radius:9px;background:linear-gradient(160deg,#8a1a2b,#3e0912);color:#f4d78f;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.push .tx{min-width:0;font-size:14px;line-height:1.35}
+.push .tx b{display:block}
+.push .tm{font-size:11px;color:#777;margin-inline-start:auto}
+.notif-row{margin-top:12px;font-size:14px;color:var(--muted);display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.notif-row button{background:#0f1218;color:var(--text);border:1px solid var(--line);padding:5px 12px;font-size:13px}
+.notif-row .on{color:var(--ok)}
+footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
+@media (prefers-reduced-motion:reduce){.hg,.hg *,.seat.pending .avatar{animation:none!important}}
+.tgcard{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tgbtn{display:inline-flex;align-items:center;gap:8px;background:#229ed9;color:#fff;font-weight:700;padding:9px 16px;border-radius:999px;text-decoration:none}
+.tgbtn svg{width:20px;height:20px}
+.loading{text-align:center;color:var(--muted);padding:40px 0}
+.roster input{min-width:96px}
+.roster input[data-f="email"]{min-width:150px}
+.roster .save{background:#123826;color:#9ff0c8;padding:3px 10px;border:1px solid #1f6b47}
+.roster .wa{color:#25d366;text-decoration:none;font-size:13px;white-space:nowrap}
+</style>
+</head>
+<body data-felt="burgundy">
+
+<header><div class="wrap">
+  <div class="brand"><span class="suit">♠</span><h1>ערב פוקר</h1></div>
+  <div id="userchip"></div>
+</div></header>
+
+<main class="wrap" id="app"><div class="loading">טוען…</div></main>
+<footer>ערב פוקר · השעה לפי שעון ישראל מהשרת</footer>
+
+<div id="modal"><div class="box"><h3 id="mTitle"></h3><div class="body" id="mBody"></div><div class="row" id="mBtns"></div></div></div>
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+const API_URL=(window.POKER_CONFIG||{}).API_URL||'';
+const FELT=(window.POKER_CONFIG||{}).FELT||'burgundy';
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let V=null,cred=null,skew=0,busy=false;
+try{cred=JSON.parse(localStorage.getItem('poker-cred'))}catch(e){}
+const now=()=>Date.now()+skew;
+
+/* ---------- server ---------- */
+async function api(action,extra){
+  if(!API_URL)throw new Error('חסרה כתובת השרת בקובץ config.js');
+  const t0=Date.now();
+  const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin},extra||{}))});
+  const j=await r.json();
+  if(j.error)throw new Error(j.error);
+  if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2)}
+  return j;
+}
+async function act(action,extra){
+  if(busy)return;busy=true;
+  try{const j=await api(action,extra);if(j.msg)toast(j.msg);render();return j}
+  catch(e){toast(e.message)}
+  finally{busy=false}
+}
+async function refresh(){
+  if(!cred||busy||document.hidden)return;
+  try{await api('state');render()}catch(e){if(/קוד|ברשימה/.test(e.message)){logout()}}
+}
+
+/* ---------- time ---------- */
+const D=ms=>new Date(ms);
+const ilParts=ms=>{const f=new Intl.DateTimeFormat('he-IL',{timeZone:'Asia/Jerusalem',weekday:'long',day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(D(ms));const g=t=>(f.find(p=>p.type===t)||{}).value;return{wd:g('weekday'),d:g('day'),m:g('month'),h:g('hour'),mi:g('minute')}};
+const fmtDT=ms=>{const p=ilParts(ms);return `${p.wd} ${p.d}.${p.m} ${p.h}:${p.mi}`};
+const fmtT=ms=>{const p=ilParts(ms);return `${p.h}:${p.mi}`};
+const gameLabel=()=>V.gameLabel;
+const ilInput=ms=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(D(ms));const g=t=>(p.find(x=>x.type===t)||{}).value;return `${g('year')}-${g('month')}-${g('day')}T${g('hour')==='24'?'00':g('hour')}:${g('minute')}`};
+function splitDur(ms){let s=Math.max(0,Math.floor(ms/1000));const d=Math.floor(s/86400);s%=86400;return{d,h:Math.floor(s/3600),m:Math.floor(s%3600/60),s:s%60}}
+const isOpen=()=>now()>=V.openAt;
+const isLate=()=>now()>=V.deadline;
+
+/* ---------- UI helpers ---------- */
+let mCbs=[];
+function modal(title,body,btns){
+  $('#mTitle').textContent=title;$('#mBody').textContent=body;
+  mCbs=btns.map(b=>b.f);
+  $('#mBtns').innerHTML=btns.map((b,i)=>`<button class="btn ${b.c||'btn-ghost'}" data-mi="${i}">${esc(b.t)}</button>`).join('');
+  $('#modal').classList.add('open');
+}
+const modalOpen=()=>$('#modal').classList.contains('open');
+$('#mBtns').addEventListener('click',ev=>{const b=ev.target.closest('[data-mi]');if(!b)return;
+  $('#modal').classList.remove('open');const f=mCbs[+b.dataset.mi];if(f)f()});
+let tt;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2800)}
+
+const HEART='M5 9.2C1.2 6.4 0 4.4 0 2.7 0 1.1 1.2 0 2.6 0 3.7 0 4.5.6 5 1.5 5.5.6 6.3 0 7.4 0 8.8 0 10 1.1 10 2.7 10 4.4 8.8 6.4 5 9.2Z';
+const heart=(x,y,sz,flip)=>`<path d="${HEART}" fill="#c8102e" transform="translate(${x} ${y})${flip?' rotate(180)':''} scale(${sz/10}) translate(-5 -4.6)"/>`;
+function faceArt(rank){
+  const crown=`<path d="M-13 -6 L-13 -18 L-7 -11 L0 -21 L7 -11 L13 -18 L13 -6Z" fill="#e3b341" stroke="#7a5a12" stroke-width="1"/><circle cx="0" cy="-21" r="2" fill="#c8102e"/><circle cx="-13" cy="-18" r="1.6" fill="#1f4fa3"/><circle cx="13" cy="-18" r="1.6" fill="#1f4fa3"/>`;
+  const hat=`<path d="M-14 -7 Q0 -26 14 -7Z" fill="#1f4fa3" stroke="#0d2a5c" stroke-width="1"/><path d="M-14 -7 H14" stroke="#e3b341" stroke-width="2.4"/><path d="M8 -15 q8 -6 10 2" fill="none" stroke="#c8102e" stroke-width="2"/>`;
+  const veil=`<path d="M-12 -6 Q-15 6 -10 16 M12 -6 Q15 6 10 16" fill="none" stroke="#c8102e" stroke-width="2"/>`;
+  const head=(rank==='J'?hat:crown)+(rank==='Q'?veil:'')+`<ellipse cx="0" cy="3" rx="8" ry="9" fill="#f7d9b5" stroke="#8a5a2b" stroke-width=".8"/><circle cx="-3" cy="1.5" r=".9" fill="#222"/><circle cx="3" cy="1.5" r=".9" fill="#222"/><path d="M-2.5 7 Q0 8.6 2.5 7" stroke="#8a2b2b" stroke-width=".9" fill="none"/>`+
+    (rank==='K'?`<path d="M-7 8 Q0 20 7 8 L5 14 Q0 18 -5 14Z" fill="#7a4a1a"/>`:'')+
+    `<path d="M-17 30 Q-15 14 0 13 Q15 14 17 30Z" fill="${rank==='Q'?'#c8102e':'#1f4fa3'}" stroke="#222" stroke-width=".8"/><path d="M-9 30 L0 15 L9 30" fill="#e3b341" stroke="#7a5a12" stroke-width=".8"/>`;
+  const half=`<g transform="translate(50 46)">${head}</g>`;
+  return `<rect x="25" y="14" width="50" height="112" rx="2" fill="#fbf6e9" stroke="#1f4fa3" stroke-width="1.6"/><rect x="27.5" y="16.5" width="45" height="107" rx="1.5" fill="none" stroke="#c8102e" stroke-width=".7"/>
+    <clipPath id="fc${rank}"><rect x="26" y="15" width="48" height="110"/></clipPath>
+    <g clip-path="url(#fc${rank})">${half}<g transform="rotate(180 50 70)">${half}</g></g>
+    <path d="M26 70 L74 70" stroke="#7a5a12" stroke-width=".8"/>
+    ${heart(66,25,8)}${heart(34,115,8,true)}`;
+}
+function cardSVG(rank){
+  const idx=(x,y,flip)=>`<g transform="${flip?'rotate(180 50 70) ':''}"><text x="${x}" y="${y}" text-anchor="middle" font-family="'Libre Baskerville',Georgia,serif" font-weight="700" font-size="${rank==='10'?19:25}" fill="#c8102e" ${rank==='10'?'letter-spacing="-2.5"':''}>${rank}</text>${heart(x,y+14,15)}</g>`;
+  let center='';
+  if(rank==='A')center=heart(53,70,36);
+  else if(rank==='10'){
+    const xs=[38,68],ys=[30,52,88,110];
+    for(const x of xs)for(const y of ys)center+=heart(x,y,13,y>70);
+    center+=heart(53,41,13)+heart(53,99,13,true);
+  } else center=faceArt(rank);
+  return `<svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${rank} לב">
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eeeae2"/></linearGradient></defs>
+    <rect x=".8" y=".8" width="98.4" height="138.4" rx="7" fill="url(#cg)" stroke="#bdb6a8" stroke-width="1.2"/>
+    ${idx(12.5,25)}${idx(12.5,25,true)}${center}</svg>`;
+}
+
+const WAZE_SVG=`<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M33 8C19 8 9 17.5 9 30c0 4.2 1 7.6 3 10.4-1 2.6-3.1 4.3-5.7 5 1.9 2 5.8 3.8 10.2 3.3A26 26 0 0 0 31.5 54C46 54 56 44.6 56 31.2 56 18 46.3 8 33 8Z" fill="#fff" stroke="#05202b" stroke-width="3.2" stroke-linejoin="round"/><circle cx="26" cy="26" r="3.2" fill="#05202b"/><circle cx="40" cy="26" r="3.2" fill="#05202b"/><path d="M24 35c2.4 4.5 6 6.6 9.4 6.6 3.5 0 6.6-2 8.6-6.6" fill="none" stroke="#05202b" stroke-width="3.2" stroke-linecap="round"/><circle cx="23" cy="55" r="5" fill="#05202b"/><circle cx="43" cy="55" r="5" fill="#05202b"/></svg>`;
+function hourglass(){
+  return `<svg class="hg" viewBox="0 0 60 100" aria-hidden="true">
+      <defs>
+        <clipPath id="cTop"><path d="M13 9 C13 34 28.5 41 29.4 50 L30.6 50 C31.5 41 47 34 47 9Z"/></clipPath>
+        <clipPath id="cBot"><path d="M29.4 50 C28.5 59 13 66 13 91 L47 91 C47 66 31.5 59 30.6 50Z"/></clipPath>
+        <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d78f"/><stop offset="1" stop-color="#c9963c"/></linearGradient>
+      </defs>
+      <g clip-path="url(#cTop)"><rect class="st" x="0" y="20" width="60" height="40" fill="url(#sand)"/></g>
+      <g clip-path="url(#cBot)"><rect class="sb" x="0" y="91" width="60" height="40" fill="url(#sand)"/></g>
+      <rect class="stream" x="29.4" y="49" width="1.2" height="42" fill="#e9c372"/>
+      <path d="M12 8 C12 34 28 41 28 50 C28 59 12 66 12 92 M48 8 C48 34 32 41 32 50 C32 59 48 66 48 92" stroke="#ffffffa0" stroke-width="1.6" fill="none"/>
+      <rect x="5" y="2" width="50" height="7" rx="2" fill="#8a4f20"/><rect x="5" y="91" width="50" height="7" rx="2" fill="#8a4f20"/>
+    </svg>`;
+}
+
+
+const TG_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21.5 4.2 2.9 11.4c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.3 4.8 3.6c.9.5 1.5.2 1.7-.8l3.1-14.8c.3-1.3-.5-1.9-1.5-1.4ZM8.8 14.1l9.6-6.1c.5-.3.9-.1.5.2l-8.2 7.4-.3 3.4-1.6-4.9Z"/></svg>`;
+
+/* ---------- render ---------- */
+function render(){
+  document.body.dataset.felt=FELT;
+  const chip=$('#userchip');
+  if(!cred||!V){chip.innerHTML='';$('#app').innerHTML=loginView()+(V?tableView(true):'');bindLogin();return}
+  const adm=!!V.admin;
+  chip.innerHTML=`<div class="userchip">${V.me?(adm?'👑 ':'🙂 ')+esc(V.me.name)+(adm?' (מנהל)':''):'👑 מנהל'}<button id="logout">התנתק</button></div>`;
+  $('#logout').onclick=logout;
+  $('#app').innerHTML=infoBar()+heroView()+locationView()+tgView()+tableView(false)+listsView()+rulesView()+(adm?adminView():'');
+  bindMain();tick();showAlerts();
+}
+function logout(){cred=null;V=null;try{localStorage.removeItem('poker-cred')}catch(e){}render()}
+function showAlerts(){
+  if(!V||!V.admin||!V.admin.alerts.length||modalOpen())return;
+  modal('🔄 עדכון מקום בשולחן',V.admin.alerts[0],[{t:'הבנתי',c:'btn-gold',f:()=>act('ackAlert')}]);
+}
+
+function loginView(){
+  return `<div class="card login">
+    <h2>כניסה לערב הפוקר</h2>
+    <p class="muted">הזן את מספר הטלפון שלך. רק מספרים שהמנהל הוסיף יכולים להיכנס.</p>
+    <input id="phone" inputmode="tel" placeholder="050-0000000" autocomplete="tel">
+    <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="סיסמת מנהל" style="font-size:20px;text-align:center;letter-spacing:6px" autocomplete="current-password" hidden>
+    <div class="err" id="lerr"></div>
+    <button class="btn btn-gold btn-big" id="lbtn">כניסה</button>
+  </div>`;
+}
+function bindLogin(){
+  const go=async()=>{
+    const phone=$('#phone').value,pin=$('#pin').value;
+    $('#lerr').textContent='';$('#lbtn').disabled=true;
+    cred={phone,pin};
+    try{await api('login');try{localStorage.setItem('poker-cred',JSON.stringify(cred))}catch(e){}render()}
+    catch(e){cred=null;if(e.message==='NEED_PIN'){$('#pin').hidden=false;$('#pin').focus();$('#lerr').textContent='זה טלפון של מנהל. הזן את סיסמת המנהל.'}else $('#lerr').textContent=e.message}
+    finally{const b=$('#lbtn');if(b)b.disabled=false}
+  };
+  $('#lbtn').onclick=go;
+  ['#phone','#pin'].forEach(id=>$(id).onkeydown=e=>{if(e.key==='Enter')go()});
+}
+
+function infoBar(){
+  return `<div class="infobar"><span class="pill">📅 ${esc(gameLabel())}</span><span class="pill">⏰ הגעה עד ${V.arrival} <span class="muted small">(${V.season})</span></span></div>`;
+}
+function countdownBoxes(){return `<div class="countdown"><div><b id="cdD">0</b><span>ימים</span></div><div><b id="cdH">00</b><span>שעות</span></div><div><b id="cdM">00</b><span>דקות</span></div><div><b id="cdS">00</b><span>שניות</span></div></div>`}
+function choicesHTML(cur,canWait){
+  return `<div class="choices">
+    <button class="choice go ${cur==='go'?'sel':''}" data-choose="go">✅ מגיע</button>
+    ${canWait?`<button class="choice wait ${cur==='wait'?'sel':''}" data-choose="wait">⏳ ממתין</button>`:''}
+    <button class="choice no ${cur==='no'?'sel':''}" data-choose="no">❌ לא מגיע</button></div>`;
+}
+function heroView(){
+  const me=V.me;
+  if(me&&me.suspendedUntil&&me.status==='none'||me&&me.suspendedUntil&&me.status==='no')return `<div class="card hero bad">${hourglass()}<div class="big">⛔ אתה מושהה</div>
+    <p class="muted">בגלל ביטול אחרי 17:00 ביום המשחק. ההשהיה תסתיים ${esc(fmtDT(me.suspendedUntil))}.</p>${countdownBoxes()}
+    <p class="muted small">רק המנהל יכול לבטל השהיה, אחרי התייעצות עם הצוות.</p></div>`;
+  if(!isOpen())return `<div class="card hero">${hourglass()}<div class="big">ההרשמה נפתחת ${esc(fmtDT(V.openAt))}</div>${countdownBoxes()}
+    <p class="muted small">כשהשעון מגיע לאפס יופיעו הכפתורים מגיע, ממתין ולא מגיע. מי שמאשר ראשון תופס מקום.</p></div>`;
+  if(!me){
+    const pend=V.seats.filter(s=>s.pending);
+    return `<div class="card hero"><div class="big">ההרשמה פתוחה · ${V.seats.length}/${V.seatsMax} בשולחן · ${V.waiting.length} ממתינים</div>
+      ${pend.map(s=>`<p style="color:var(--warn)">⏳ ${esc(s.name)} עלה מההמתנה ועוד לא אישר</p>`).join('')}
+      <p class="muted small">ביטול בלי עונש עד ${esc(fmtDT(V.deadline))}</p></div>`;
+  }
+  if(me.pending)return `<div class="card hero alert"><div style="font-size:34px">🎉</div><div class="big">התפנה לך מקום בשולחן!</div>
+    <p>${esc(me.replaced&&me.replaced.name)} ${me.replaced&&me.replaced.reason==='timeout'?'לא אישר בזמן':'ביטל'}, ואתה הבא בתור. אתה מגיע?</p>
+    <p>נשאר לך <b style="color:var(--gold2)" id="pendLeft"></b> לאשר. אחרי זה המקום עובר לבא בתור.</p>
+    <p class="muted small">עלית מרשימת ההמתנה, אז אין עונש גם אם תבטל מאוחר יותר.</p>
+    <div class="row" style="justify-content:center"><button class="btn btn-gold btn-big" id="yesPromo">✅ מגיע</button><button class="btn btn-ghost" id="noPromo">❌ לא מגיע</button></div></div>`;
+  let cur=null,line='';
+  if(me.status==='seat'){cur='go';line=`🪑 אתה במשחק, מושב ${me.seatNo}. הגעה עד ${V.arrival}. `+(me.promoted?'עלית מההמתנה, אז ביטול לא יגרור עונש.':isLate()?'<span style="color:var(--bad)">עברה השעה 17:00, וביטול עכשיו יגרור השהיה ל-14 יום.</span>':`ביטול בלי עונש עד ${esc(fmtDT(V.deadline))}.`)}
+  else if(me.status==='wait'){cur='wait';line=`⏳ אתה ברשימת ההמתנה, מקום ${me.waitNo}. אם יתפנה מקום תקבל התראה ותצטרך לאשר תוך שעה.`}
+  else if(me.status==='no'){cur='no';line='סימנת שאתה לא מגיע. אפשר לשנות.'}
+  else line=`עוד לא בחרת · ${V.seats.length}/${V.seatsMax} מקומות תפוסים`;
+  return `<div class="card hero"><div class="big">${V.seats.length>=V.seatsMax&&me.status!=='seat'?'השולחן מלא. "מגיע" יכניס אותך לרשימת ההמתנה':'ההרשמה פתוחה'}</div>
+    ${choicesHTML(cur,me.status!=='seat')}<div class="status-line">${line}</div></div>`;
+}
+function locationView(){
+  if(!V.admin&&!isOpen())return'';
+  if(!V.location)return V.admin?'':`<div class="card loc"><div class="loc-locked">📍 הכתובת מוצגת רק לשחקנים שיש להם מקום בשולחן</div></div>`;
+  const q=encodeURIComponent(V.location);
+  return `<div class="card loc"><div class="muted small">📍 איפה משחקים</div><div class="addr">${esc(V.location)}</div>
+    <a class="waze" href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener">${WAZE_SVG}<span>לניווט</span></a></div>`;
+}
+function tgView(){
+  const linked=V.me?V.me.tgLinked:V.admin.tgLinked, link=V.me?V.me.tgLink:V.admin.tgLink;
+  if(linked)return'';
+  if(!link)return'';
+  return `<div class="card tgcard"><div><b>🔔 התראות לטלפון</b><div class="muted small">לוחצים פעם אחת, ובטלגרם לוחצים Start. תוך דקה תקבל הודעת אישור.${V.admin?'':' אין לך טלגרם? בקש מהמנהל לרשום לך מייל.'}</div></div>
+    <a class="tgbtn" href="${esc(link)}" target="_blank" rel="noopener">${TG_SVG}<span>חבר טלגרם</span></a></div>`;
+}
+function tableView(anon){
+  const mob=matchMedia('(max-width:640px)').matches;
+  const rx=mob?42:46, ry=mob?45:44, N=V.seatsMax;
+  let seats='';
+  for(let k=0;k<N;k++){
+    const a=(90+k*360/N)*Math.PI/180, x=50+rx*Math.cos(a), y=50+ry*Math.sin(a), e=V.seats[k];
+    let cls='empty',name='פנוי',ini='+';
+    if(e){cls=e.pending?'pending':'in';name=anon?'תפוס':e.name;ini=anon?'♠':name[0];if(V.me&&e.id===V.me.id)cls+=' me'}
+    seats+=`<div class="seat ${cls}" style="left:${x}%;top:${y}%"><div class="avatar">${esc(ini)}<span class="num">${k+1}</span></div><div class="name">${esc(name)}${e&&e.pending?' ⏳':''}</div></div>`;
+  }
+  const da=(90+0.5*360/N)*Math.PI/180;
+  return `<div class="table-wrap"><div class="table"><div class="wood"></div><div class="felt"><div class="felt-center">
+      <div class="felt-logo">POKER</div>
+      <div class="fan">${['A','K','Q','J','10'].map((r,i)=>`<div class="fc" style="--r:${(i-2)*14}deg">${cardSVG(r)}</div>`).join('')}</div>
+      <div class="felt-loc">${V.seats.length}/${N} · ${esc(gameLabel())}</div></div></div></div>
+    <div class="dealer" style="left:${50+(rx-11)*Math.cos(da)}%;top:${50+(ry-13)*Math.sin(da)}%">D</div>${seats}</div>
+  <div class="legend"><span><i style="background:var(--gold)"></i>מגיע</span><span><i style="background:var(--warn)"></i>עלה מההמתנה, מחכה לאישור</span><span><i style="border:1px dashed #fff8"></i>מקום פנוי</span></div>`;
+}
+function listsView(){
+  const meId=V.me&&V.me.id;
+  const ph=p=>p.phone?`<span class="ph">${esc(p.phone)}</span>`:'';
+  const meTag=id=>id===meId?'<span class="tag me">אני</span>':'';
+  const none='<li class="empty">אין</li>';
+  const li=p=>`<li>${esc(p.name)}${meTag(p.id)}${ph(p)}</li>`;
+  const inL=V.seats.map(e=>`<li>${esc(e.name)}${meTag(e.id)}${e.promoted?(e.pending?'<span class="tag warn">מחכה לאישור</span>':'<span class="tag warn">עלה מההמתנה</span>'):''} <span class="muted small">${fmtT(e.ts)}</span>${ph(e)}</li>`).join('');
+  const wL=V.waiting.map(e=>`<li>${esc(e.name)}${meTag(e.id)} <span class="muted small">${fmtT(e.ts)}</span>${ph(e)}</li>`).join('');
+  const susL=V.suspended.map(p=>`<li>${esc(p.name)}${meTag(p.id)} <span class="muted small">עד ${esc(fmtDT(p.until))}</span>${V.admin?` <button class="btn-ghost small" style="padding:0 8px;border-radius:6px" data-unsusp="${p.id}" data-name="${esc(p.name)}">בטל השהיה</button>`:''}</li>`).join('');
+  return `<div class="card"><div class="grid">
+    <div class="list"><h3>✅ מגיעים <span class="cnt">${V.seats.length}/${V.seatsMax}</span></h3><ol>${inL||none}</ol></div>
+    <div class="list"><h3>⏳ ממתינים <span class="cnt">${V.waiting.length}</span></h3><ol>${wL||none}</ol></div>
+    <div class="list"><h3>❌ לא מגיעים <span class="cnt">${V.notComing.length}</span></h3><ul>${V.notComing.map(li).join('')||none}</ul></div>
+    <div class="list"><h3>❔ עוד לא ענו <span class="cnt">${V.notAnswered.length}</span></h3><ul>${V.notAnswered.map(li).join('')||none}</ul></div>
+    <div class="list"><h3>⛔ מושהים <span class="cnt">${V.suspended.length}</span></h3><ul>${susL||none}</ul></div>
+  </div></div>`;
+}
+function rulesView(){
+  return `<div class="card rules"><h2>📜 חוקי המשחק</h2><ul>
+    <li>המשחק בדרך כלל במוצאי שבת. ההרשמה נפתחת בכל <b>יום חמישי ב-16:00</b>, אלא אם המנהל קבע מועד אחר.</li>
+    <li>עד <b>${V.seatsMax} שחקנים</b> בשולחן לפי סדר האישור. מהשחקן ה-${V.seatsMax+1} נכנסים לרשימת המתנה.</li>
+    <li>מי שלא בטוח יכול לבחור <b>ממתין</b> ולהיכנס לרשימת ההמתנה גם כשיש מקום פנוי.</li>
+    <li>ביטול <b>בלי עונש עד 17:00 ביום המשחק</b>.</li>
+    <li>ביטול אחרי 17:00 ביום המשחק נחשב <b>הפרה</b>, והשחקן מושהה ל-14 יום. רק המנהל יכול לבטל השהיה, אחרי התייעצות עם הצוות.</li>
+    <li>כשמישהו מבטל, הממתין הראשון עולה לשולחן, מקבל התראה, ויש לו <b>שעה</b> לאשר. אם לא אישר, המקום עובר לבא בתור. מי שעלה מההמתנה לא נענש על ביטול.</li>
+    <li>בשעון קיץ ההגעה היא <b>עד 22:00</b>, ובשעון חורף <b>עד 21:30</b>. מי שמגיע אחרי השעה הזו, מקומו לא מובטח.</li>
+  </ul></div>`;
+}
+function inviteText(p){
+  const url=V.admin.siteUrl||location.href.split('#')[0];
+  return `היי ${p.name} 🃏\nזה האתר של ערב הפוקר: ${url}\nנכנסים עם מספר הטלפון שלך. ההרשמה נפתחת כל יום חמישי ב-16:00.`;
+}
+function adminView(){
+  const A=V.admin;
+  const rows=A.players.map(p=>`<tr data-row="${p.id}"><td><input data-f="name" value="${esc(p.name)}"></td><td><input data-f="phone" value="${esc(p.phone)}" dir="ltr"></td>
+<td><input data-f="email" value="${esc(p.email)}" dir="ltr" placeholder="מייל (לא חובה)"></td>
+    <td>${A.isMain?`<div style="display:flex;gap:6px;align-items:center"><label class="small" style="display:flex;gap:4px;align-items:center;color:var(--text);margin:0;white-space:nowrap"><input type="checkbox" data-f="admin" ${p.admin?'checked':''} style="width:auto;min-width:0"> מנהל</label><input data-f="apin" type="text" inputmode="numeric" maxlength="8" value="${esc(p.adminPin||'')}" placeholder="סיסמה" dir="ltr" style="min-width:70px;width:70px" ${p.admin?'':'hidden'}></div>`:(p.admin?'<span class="small">👑 מנהל</span>':'')}</td>
+    <td class="small">${p.tg?'<span class="ok" title="מחובר לטלגרם">✓ TG</span>':'<span class="muted">–</span>'}</td>
+    <td><button class="save" data-save="${p.id}">שמור</button></td>
+    <td><a class="wa" href="https://wa.me/972${esc(p.phone.slice(1))}?text=${encodeURIComponent(inviteText(p))}" target="_blank" rel="noopener">שלח קישור</a></td>
+    <td><button class="x" data-del="${p.id}" data-name="${esc(p.name)}">✕</button></td></tr>`).join('');
+  const pend=V.seats.filter(s=>s.pending);
+  return `<div class="card admin"><h2>⚙️ ניהול <span class="badge">רק למנהל</span></h2>
+    ${V.me&&pend.length?`<p style="color:var(--warn)">⏳ ממתינים לאישור אחרי עלייה מההמתנה: ${pend.map(s=>esc(s.name)).join(', ')}</p>`:''}
+    <div class="form-grid">
+      <div><label for="gDate">תאריך המשחק</label><input type="date" id="gDate" value="${V.gameDate}"></div>
+      <div><label for="gOpen">פתיחת ההרשמה ${V.openCustom?'(מועד שקבעת)':'(ברירת מחדל: חמישי 16:00)'}</label><input type="datetime-local" id="gOpen" value="${ilInput(V.openAt)}"></div>
+      <div><label>שעת הגעה (לפי העונה)</label><input disabled value="${V.arrival} · ${V.season}"></div>
+      <div style="grid-column:1/-1"><label for="gLoc">כתובת המשחק (מוצגת רק למי שיש לו מקום בשולחן)</label><input id="gLoc" value="${esc(V.location||'')}" placeholder="רחוב, מספר, עיר"></div>
+      <div style="grid-column:1/-1"><label for="aEmail">המייל שלך לעדכונים (אם לא חיברת טלגרם)</label><input id="aEmail" value="${esc(A.email)}" dir="ltr"></div>
+    </div>
+    <p class="muted small">ההרשמה תיפתח ${esc(fmtDT(V.openAt))} · ביטול בלי עונש עד ${esc(fmtDT(V.deadline))} · ביום ראשון בבוקר מתחיל שבוע חדש אוטומטית</p>
+    <div class="row"><button class="btn btn-gold" id="saveGame">שמור</button>${isOpen()?'':'<button class="btn btn-ok" id="openNow">🔓 פתח הרשמה עכשיו</button>'}${V.openCustom?'<button class="btn btn-ghost" id="resetOpen">↩️ פתיחה ביום חמישי 16:00</button>':''}<button class="btn btn-ghost" id="newWeek">🔁 התחל שבוע חדש עכשיו</button></div>
+  </div>
+  <div class="card admin"><h2>👥 שחקנים מורשים (${A.players.length})</h2>
+    <p class="muted small">אין הגבלה על מספר השחקנים. רק טלפון שמופיע כאן יכול להיכנס. כדי לתת לשחקן גישה לניהול, סמן "מנהל", קבע לו סיסמה ולחץ שמור. אם גם אתה משחק, הוסף את עצמך לרשימה. "שלח קישור" פותח וואטסאפ עם הודעה מוכנה לשחקן.</p>
+    <div style="overflow-x:auto"><table class="roster"><thead><tr><th>שם</th><th>טלפון</th><th>מייל</th><th>הרשאה</th><th>התראות</th><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="row" style="margin-top:10px"><input id="newName" placeholder="שם" style="flex:1;min-width:110px"><input id="newPhone" placeholder="טלפון" dir="ltr" style="flex:1;min-width:110px"><input id="newEmail" placeholder="מייל (לא חובה)" dir="ltr" style="flex:1;min-width:140px"><button class="btn btn-gold" id="addP">הוסף</button></div>
+  </div>`;
+}
+function bindMain(){
+  const on=(id,f)=>{const el=$(id);if(el)el.onclick=f};
+  document.querySelectorAll('[data-choose]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.choose;
+    if(k==='no'&&(V.me.status==='seat'||V.me.status==='wait'))return askCancel();
+    act('choose',{kind:k});
+  });
+  on('#yesPromo',()=>act('confirm'));
+  on('#noPromo',()=>modal('לוותר על המקום?','המקום יעבור לבא בתור ברשימת ההמתנה. אין עונש.',[{t:'כן, אני לא מגיע',c:'btn-bad',f:()=>act('cancel')},{t:'חזרה',c:'btn-ghost'}]));
+  if(!V.admin)return;
+  document.querySelectorAll('[data-unsusp]').forEach(b=>b.onclick=()=>modal('לבטל השהיה?',`${b.dataset.name} יוכל להירשם שוב. כדאי לעשות את זה רק אחרי התייעצות עם הצוות.`,[
+    {t:'בטל השהיה',c:'btn-gold',f:()=>act('unsuspend',{id:b.dataset.unsusp})},{t:'חזרה',c:'btn-ghost'}]));
+  let openDirty=false;const go=$('#gOpen');if(go)go.oninput=()=>{openDirty=true};
+  on('#saveGame',()=>act('saveGame',Object.assign({date:$('#gDate').value,location:$('#gLoc').value,email:$('#aEmail').value},openDirty?{openAt:$('#gOpen').value}:{})));
+  on('#openNow',()=>modal('לפתוח הרשמה עכשיו?','כל השחקנים יקבלו התראה שההרשמה נפתחה, ומי שמאשר ראשון תופס מקום.',[{t:'פתח עכשיו',c:'btn-gold',f:()=>act('openNow')},{t:'ביטול',c:'btn-ghost'}]));
+  on('#resetOpen',()=>act('resetOpen'));
+  on('#newWeek',()=>modal('להתחיל שבוע חדש?','תאריך המשחק יעבור למוצאי השבת הבא וכל התשובות יימחקו. ההשהיות נשארות.',[{t:'כן',c:'btn-gold',f:()=>act('newWeek')},{t:'ביטול',c:'btn-ghost'}]));
+  document.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{const tr=b.closest('tr'),g=f=>tr.querySelector(`[data-f="${f}"]`).value;
+    act('savePlayer',{player:{id:b.dataset.save,name:g('name'),phone:g('phone'),email:g('email'),admin:!!(tr.querySelector('[data-f="admin"]')||{}).checked,adminPin:(tr.querySelector('[data-f="apin"]')||{}).value}})});
+  document.querySelectorAll('[data-f="admin"]').forEach(c=>c.onchange=()=>{const i=c.closest('tr').querySelector('[data-f="apin"]');i.hidden=!c.checked;if(c.checked)i.focus()});
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>modal('להסיר שחקן?',`${b.dataset.name} יוסר מהרשימה ומהשולחן.`,[
+    {t:'הסר',c:'btn-bad',f:()=>act('deletePlayer',{id:b.dataset.del})},{t:'ביטול',c:'btn-ghost'}]));
+  on('#addP',()=>act('savePlayer',{player:{name:$('#newName').value,phone:$('#newPhone').value,email:$('#newEmail').value}}));
+}
+function askCancel(){
+  const me=V.me,late=me.status==='seat'&&!me.promoted&&isLate();
+  let body;
+  if(me.status==='wait')body='תצא מרשימת ההמתנה. אין עונש.';
+  else if(me.promoted)body='עלית מרשימת ההמתנה, לכן הביטול לא נחשב הפרה ואין עונש.';
+  else if(late)body=`⚠️ השעה אחרי 17:00 ביום המשחק.\nביטול עכשיו נחשב הפרה, ותושהה ל-14 יום.`;
+  else body=`עד 17:00 ביום המשחק (${fmtDT(V.deadline)}) אפשר לבטל בלי עונש.`;
+  modal(late?'ביטול עם עונש':'בטוח שאתה לא מגיע?',body,[
+    {t:late?'כן, בטל ואני מקבל את ההשהיה':'כן, אני לא מגיע',c:'btn-bad',f:async()=>{
+      const j=await act('cancel',{acceptPenalty:late});
+      if(j&&j.needLateConfirm)modal('ביטול עם עונש','⚠️ בינתיים עברה השעה 17:00.\nביטול עכשיו נחשב הפרה, ותושהה ל-14 יום.',[
+        {t:'כן, בטל ואני מקבל את ההשהיה',c:'btn-bad',f:()=>act('cancel',{acceptPenalty:true})},{t:'לא, אני מגיע',c:'btn-ok'}]);
+    }},
+    {t:'לא, אני מגיע',c:'btn-ok'}]);
+}
+
+/* ---------- clock ---------- */
+let lastOpen=null;
+function setCd(ms){const d=splitDur(ms),g=id=>document.getElementById('cd'+id);if(!g('D'))return;
+  g('D').textContent=d.d;g('H').textContent=pad(d.h);g('M').textContent=pad(d.m);g('S').textContent=pad(d.s)}
+function tick(){
+  if(!V||!cred)return;
+  const o=isOpen();
+  if(lastOpen===false&&o){lastOpen=o;refresh();return}
+  lastOpen=o;
+  const me=V.me;
+  setCd(me&&me.suspendedUntil?me.suspendedUntil-now():V.openAt-now());
+  const pl=$('#pendLeft');
+  if(pl&&me.pendingUntil){const d=splitDur(me.pendingUntil-now());pl.textContent=`${pad(d.h*60+d.m)}:${pad(d.s)} דקות`;if(me.pendingUntil<=now())refresh()}
+}
+let lastMob=matchMedia('(max-width:640px)').matches;
+addEventListener('resize',()=>{const m=matchMedia('(max-width:640px)').matches;if(m!==lastMob){lastMob=m;if(V)render()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+setInterval(tick,1000);
+setInterval(refresh,20000);
+if(cred)api('state').then(render).catch(e=>{toast(e.message);logout()});else render();
+</script>
+</body>
+</html>
