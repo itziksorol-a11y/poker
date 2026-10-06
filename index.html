@@ -66,7 +66,7 @@ header .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .hero .big{font-size:22px;font-weight:700;margin:4px 0}
 .hero.alert{border-color:#6b5520;background:linear-gradient(180deg,#2c2410,#1a160c)}
 .hero.bad{border-color:#6b2328;background:linear-gradient(180deg,#2a1215,#170b0c)}
-.countdown{display:flex;justify-content:center;gap:10px;margin:12px 0 4px}
+.countdown{display:flex;justify-content:center;gap:10px;margin:12px 0 4px;direction:ltr}
 .countdown div{background:#0b0d12;border:1px solid var(--line);border-radius:12px;min-width:66px;padding:8px 6px}
 .countdown b{display:block;font-size:30px;font-variant-numeric:tabular-nums;color:var(--gold2);line-height:1.1}
 .countdown span{font-size:12px;color:var(--muted)}
@@ -235,7 +235,8 @@ footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
   <div id="userchip"></div>
 </div></header>
 
-<main class="wrap" id="app"><div class="loading">טוען…</div></main>
+<div id="sync" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:12px;z-index:40;font-size:12px;color:var(--muted);background:#000a;padding:3px 10px;border-radius:999px" hidden>⟳ מתעדכן…</div>
+<main class="wrap" id="app"><div class="loading">מתחבר לשרת…<br><span class="small">בכניסה הראשונה זה יכול לקחת כמה שניות</span></div></main>
 <footer>ערב פוקר · השעה לפי שעון ישראל מהשרת</footer>
 
 <div id="modal"><div class="box"><h3 id="mTitle"></h3><div class="body" id="mBody"></div><div class="row" id="mBtns"></div></div></div>
@@ -249,6 +250,7 @@ const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let V=null,cred=null,skew=0,busy=false;
+const setSync=on=>{const el=document.getElementById('sync');if(el)el.hidden=!on};
 try{cred=JSON.parse(localStorage.getItem('poker-cred'))}catch(e){}
 const now=()=>Date.now()+skew;
 
@@ -265,7 +267,7 @@ async function api(action,extra){
     finally{clearTimeout(timer)}
   }
   if(j.error)throw new Error(j.error);
-  if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2)}
+  if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2);try{localStorage.setItem('poker-view',JSON.stringify({v:V,skew,phone:cred&&cred.phone}))}catch(e){}setSync(false)}
   return j;
 }
 async function act(action,extra){
@@ -282,7 +284,7 @@ async function refresh(){
 /* ---------- time ---------- */
 const D=ms=>new Date(ms);
 const ilParts=ms=>{const f=new Intl.DateTimeFormat('he-IL',{timeZone:'Asia/Jerusalem',weekday:'long',day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(D(ms));const g=t=>(f.find(p=>p.type===t)||{}).value;return{wd:g('weekday'),d:g('day'),m:g('month'),h:g('hour'),mi:g('minute')}};
-const fmtDT=ms=>{const p=ilParts(ms);return `${p.wd} ${p.d}.${p.m} ${p.h}:${p.mi}`};
+const fmtDT=ms=>{const p=ilParts(ms);return `${p.wd} ${p.d}.${p.m} בשעה ${p.h}:${p.mi}`};
 const fmtT=ms=>{const p=ilParts(ms);return `${p.h}:${p.mi}`};
 const gameLabel=()=>{const [y,m,d]=V.gameDate.split('-').map(Number),wd=new Date(Date.UTC(y,m-1,d)).getUTCDay();return `${wd===6?'מוצאי שבת':'יום '+HE_WD[wd]} ${d}.${m}`};
 const HE_WD=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
@@ -374,7 +376,7 @@ function render(){
   $('#app').innerHTML=infoBar()+heroView()+locationView()+tgView()+tableView(false)+listsView()+rulesView()+(adm?adminView():'');
   bindMain();tick();showAlerts();
 }
-function logout(){cred=null;V=null;try{localStorage.removeItem('poker-cred')}catch(e){}render()}
+function logout(){cred=null;V=null;try{localStorage.removeItem('poker-cred');localStorage.removeItem('poker-view')}catch(e){}render()}
 function showAlerts(){
   if(!V||!V.admin||!V.admin.alerts.length||modalOpen())return;
   modal('🔄 עדכון מקום בשולחן',V.admin.alerts[0],[{t:'הבנתי',c:'btn-gold',f:()=>act('ackAlert')}]);
@@ -590,7 +592,9 @@ addEventListener('resize',()=>{const m=matchMedia('(max-width:640px)').matches;i
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 setInterval(tick,1000);
 setInterval(refresh,20000);
-if(cred)api('state').then(render).catch(e=>{toast(e.message);logout()});else render();
+// מציגים מיד את המצב האחרון שנשמר במכשיר, ומעדכנים מהשרת ברקע
+try{const c=JSON.parse(localStorage.getItem('poker-view'));if(cred&&c&&c.phone===cred.phone){V=c.v;skew=c.skew;render();setSync(true)}}catch(e){}
+if(cred)api('state').then(render).catch(e=>{setSync(false);if(/ברשימה|שגויה/.test(e.message)){toast(e.message);logout()}else if(!V){toast(e.message);logout()}else toast(e.message)});else render();
 </script>
 </body>
 </html>
