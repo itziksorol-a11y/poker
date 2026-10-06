@@ -129,9 +129,16 @@ header .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:5px;vertical-align:middle}
 
 @media (max-width:640px){
-  .table-wrap{aspect-ratio:3/4.3}
-  .fan{width:46vw}
-  .felt-logo{font-size:9vw}
+  .table-wrap{aspect-ratio:16/11;margin:26px 0 14px}
+  .table{inset:9% 6%}
+  .seat{width:58px}
+  .avatar{width:32px;font-size:13px;border-width:2px}
+  .seat .name{font-size:10px;padding:0 6px}
+  .seat .num{min-width:15px;height:15px;line-height:13px;font-size:9px;top:-5px}
+  .dealer{width:16px;font-size:9px}
+  .fan{width:24vw}
+  .felt-logo{font-size:6.2vw}
+  .felt-loc{font-size:9px}
   .countdown div{min-width:56px}
   .countdown b{font-size:24px}
   .brand h1{font-size:21px}
@@ -277,7 +284,17 @@ const D=ms=>new Date(ms);
 const ilParts=ms=>{const f=new Intl.DateTimeFormat('he-IL',{timeZone:'Asia/Jerusalem',weekday:'long',day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(D(ms));const g=t=>(f.find(p=>p.type===t)||{}).value;return{wd:g('weekday'),d:g('day'),m:g('month'),h:g('hour'),mi:g('minute')}};
 const fmtDT=ms=>{const p=ilParts(ms);return `${p.wd} ${p.d}.${p.m} ${p.h}:${p.mi}`};
 const fmtT=ms=>{const p=ilParts(ms);return `${p.h}:${p.mi}`};
-const gameLabel=()=>V.gameLabel;
+const gameLabel=()=>{const [y,m,d]=V.gameDate.split('-').map(Number),wd=new Date(Date.UTC(y,m-1,d)).getUTCDay();return `${wd===6?'מוצאי שבת':'יום '+HE_WD[wd]} ${d}.${m}`};
+const HE_WD=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+function dateOptions(selected){
+  const today=ilInput(now()).slice(0,10), [y,m,d]=today.split('-').map(Number), out=[];
+  const list=[];for(let i=-1;i<=90;i++){const dt=new Date(Date.UTC(y,m-1,d+i));list.push(dt.toISOString().slice(0,10))}
+  if(selected&&!list.includes(selected))list.unshift(selected);
+  for(const iso of list){const [yy,mm,dd]=iso.split('-').map(Number),wd=new Date(Date.UTC(yy,mm-1,dd)).getUTCDay();
+    out.push(`<option value="${iso}" ${iso===selected?'selected':''}>${wd===6?'מוצאי שבת':'יום '+HE_WD[wd]} ${dd}.${mm}.${yy}</option>`)}
+  return out.join('');
+}
+function numOptions(n,step,sel){let o='';for(let i=0;i<n;i+=step)o+=`<option value="${i}" ${i===sel-(sel%step)?'selected':''}>${pad(i)}</option>`;return o}
 const ilInput=ms=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(D(ms));const g=t=>(p.find(x=>x.type===t)||{}).value;return `${g('year')}-${g('month')}-${g('day')}T${g('hour')==='24'?'00':g('hour')}:${g('minute')}`};
 function splitDur(ms){let s=Math.max(0,Math.floor(ms/1000));const d=Math.floor(s/86400);s%=86400;return{d,h:Math.floor(s/3600),m:Math.floor(s%3600/60),s:s%60}}
 const isOpen=()=>now()>=V.openAt;
@@ -438,7 +455,7 @@ function tgView(){
 }
 function tableView(anon){
   const mob=matchMedia('(max-width:640px)').matches;
-  const rx=mob?42:46, ry=mob?45:44, N=V.seatsMax;
+  const rx=mob?46:46, ry=mob?43:44, N=V.seatsMax;
   let seats='';
   for(let k=0;k<N;k++){
     const a=(90+k*360/N)*Math.PI/180, x=50+rx*Math.cos(a), y=50+ry*Math.sin(a), e=V.seats[k];
@@ -456,12 +473,12 @@ function tableView(anon){
 }
 function listsView(){
   const meId=V.me&&V.me.id;
-  const ph=p=>p.phone?`<span class="ph">${esc(p.phone)}</span>`:'';
+  const ph=p=>p.phone?` <span class="ph">· <bdi dir="ltr">${esc(p.phone)}</bdi></span>`:'';
   const meTag=id=>id===meId?'<span class="tag me">אני</span>':'';
   const none='<li class="empty">אין</li>';
   const li=p=>`<li>${esc(p.name)}${meTag(p.id)}${ph(p)}</li>`;
-  const inL=V.seats.map(e=>`<li>${esc(e.name)}${meTag(e.id)}${e.promoted?(e.pending?'<span class="tag warn">מחכה לאישור</span>':'<span class="tag warn">עלה מההמתנה</span>'):''} <span class="muted small">${fmtT(e.ts)}</span>${ph(e)}</li>`).join('');
-  const wL=V.waiting.map(e=>`<li>${esc(e.name)}${meTag(e.id)} <span class="muted small">${fmtT(e.ts)}</span>${ph(e)}</li>`).join('');
+  const inL=V.seats.map(e=>`<li>${esc(e.name)}${meTag(e.id)}${e.promoted?(e.pending?'<span class="tag warn">מחכה לאישור</span>':'<span class="tag warn">עלה מההמתנה</span>'):''} <span class="muted small"><bdi>${fmtT(e.ts)}</bdi></span>${ph(e)}</li>`).join('');
+  const wL=V.waiting.map(e=>`<li>${esc(e.name)}${meTag(e.id)} <span class="muted small"><bdi>${fmtT(e.ts)}</bdi></span>${ph(e)}</li>`).join('');
   const susL=V.suspended.map(p=>`<li>${esc(p.name)}${meTag(p.id)} <span class="muted small">עד ${esc(fmtDT(p.until))}</span>${V.admin?` <button class="btn-ghost small" style="padding:0 8px;border-radius:6px" data-unsusp="${p.id}" data-name="${esc(p.name)}">בטל השהיה</button>`:''}</li>`).join('');
   return `<div class="card"><div class="grid">
     <div class="list"><h3>✅ מגיעים <span class="cnt">${V.seats.length}/${V.seatsMax}</span></h3><ol>${inL||none}</ol></div>
@@ -499,8 +516,8 @@ function adminView(){
   return `<div class="card admin"><h2>⚙️ ניהול <span class="badge">רק למנהל</span></h2>
     ${V.me&&pend.length?`<p style="color:var(--warn)">⏳ ממתינים לאישור אחרי עלייה מההמתנה: ${pend.map(s=>esc(s.name)).join(', ')}</p>`:''}
     <div class="form-grid">
-      <div><label for="gDate">תאריך המשחק</label><input type="date" id="gDate" value="${V.gameDate}"></div>
-      <div><label for="gOpen">פתיחת ההרשמה ${V.openCustom?'(מועד שקבעת)':'(ברירת מחדל: חמישי 16:00)'}</label><input type="datetime-local" id="gOpen" value="${ilInput(V.openAt)}"></div>
+      <div><label for="gDate">תאריך המשחק</label><select id="gDate">${dateOptions(V.gameDate)}</select></div>
+      <div><label for="gOpenD">פתיחת ההרשמה ${V.openCustom?'(מועד שקבעת)':'(ברירת מחדל: חמישי 16:00)'}</label><div style="display:flex;gap:6px"><select id="gOpenD" style="flex:2">${dateOptions(ilInput(V.openAt).slice(0,10))}</select><select id="gOpenH" style="flex:1" dir="ltr">${numOptions(24,1,+ilInput(V.openAt).slice(11,13))}</select><select id="gOpenM" style="flex:1" dir="ltr">${numOptions(60,5,+ilInput(V.openAt).slice(14,16))}</select></div></div>
       <div><label>שעת הגעה (לפי העונה)</label><input disabled value="${V.arrival} · ${V.season}"></div>
       <div style="grid-column:1/-1"><label for="gLoc">כתובת המשחק (מוצגת רק למי שיש לו מקום בשולחן)</label><input id="gLoc" value="${esc(V.location||'')}" placeholder="רחוב, מספר, עיר"></div>
       <div style="grid-column:1/-1"><label for="aEmail">המייל שלך לעדכונים (אם לא חיברת טלגרם)</label><input id="aEmail" value="${esc(A.email)}" dir="ltr"></div>
@@ -526,8 +543,8 @@ function bindMain(){
   if(!V.admin)return;
   document.querySelectorAll('[data-unsusp]').forEach(b=>b.onclick=()=>modal('לבטל השהיה?',`${b.dataset.name} יוכל להירשם שוב. כדאי לעשות את זה רק אחרי התייעצות עם הצוות.`,[
     {t:'בטל השהיה',c:'btn-gold',f:()=>act('unsuspend',{id:b.dataset.unsusp})},{t:'חזרה',c:'btn-ghost'}]));
-  let openDirty=false;const go=$('#gOpen');if(go)go.oninput=()=>{openDirty=true};
-  on('#saveGame',()=>act('saveGame',Object.assign({date:$('#gDate').value,location:$('#gLoc').value,email:$('#aEmail').value},openDirty?{openAt:$('#gOpen').value}:{})));
+  let openDirty=false;['#gOpenD','#gOpenH','#gOpenM'].forEach(id=>{const el=$(id);if(el)el.onchange=()=>{openDirty=true}});
+  on('#saveGame',()=>act('saveGame',Object.assign({date:$('#gDate').value,location:$('#gLoc').value,email:$('#aEmail').value},openDirty?{openAt:`${$('#gOpenD').value}T${pad($('#gOpenH').value)}:${pad($('#gOpenM').value)}`}:{})));
   on('#openNow',()=>modal('לפתוח הרשמה עכשיו?','כל השחקנים יקבלו התראה שההרשמה נפתחה, ומי שמאשר ראשון תופס מקום.',[{t:'פתח עכשיו',c:'btn-gold',f:()=>act('openNow')},{t:'ביטול',c:'btn-ghost'}]));
   on('#resetOpen',()=>act('resetOpen'));
   on('#newWeek',()=>modal('להתחיל שבוע חדש?','תאריך המשחק יעבור למוצאי השבת הבא וכל התשובות יימחקו. ההשהיות נשארות.',[{t:'כן',c:'btn-gold',f:()=>act('newWeek')},{t:'ביטול',c:'btn-ghost'}]));
