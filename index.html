@@ -248,18 +248,24 @@ const now=()=>Date.now()+skew;
 /* ---------- server ---------- */
 async function api(action,extra){
   if(!API_URL)throw new Error('חסרה כתובת השרת בקובץ config.js');
-  const t0=Date.now();
-  const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin},extra||{}))});
-  const j=await r.json();
+  const body=JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin},extra||{}));
+  let t0,j;
+  for(let attempt=0;attempt<3;attempt++){
+    t0=Date.now();
+    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),15000);
+    try{const r=await fetch(API_URL,{method:'POST',body,signal:ctl.signal,cache:'no-store',redirect:'follow'});j=await r.json();break}
+    catch(e){if(attempt===2)throw new Error('אין תשובה מהשרת. בדוק את החיבור לאינטרנט ונסה שוב.')}
+    finally{clearTimeout(timer)}
+  }
   if(j.error)throw new Error(j.error);
   if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2)}
   return j;
 }
 async function act(action,extra){
-  if(busy)return;busy=true;
+  if(busy)return;busy=true;document.body.style.cursor='progress';toast('שולח…');
   try{const j=await api(action,extra);if(j.msg)toast(j.msg);render();return j}
   catch(e){toast(e.message)}
-  finally{busy=false}
+  finally{busy=false;document.body.style.cursor=''}
 }
 async function refresh(){
   if(!cred||busy||document.hidden)return;
@@ -361,7 +367,7 @@ function loginView(){
   return `<div class="card login">
     <h2>כניסה לערב הפוקר</h2>
     <p class="muted">הזן את מספר הטלפון שלך. רק מספרים שהמנהל הוסיף יכולים להיכנס.</p>
-    <input id="phone" inputmode="tel" placeholder="050-0000000" autocomplete="tel">
+    <input id="phone" type="tel" inputmode="tel" placeholder="050-0000000" autocomplete="tel" enterkeyhint="go">
     <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="סיסמת מנהל" style="font-size:20px;text-align:center;letter-spacing:6px" autocomplete="current-password" hidden>
     <div class="err" id="lerr"></div>
     <button class="btn btn-gold btn-big" id="lbtn">כניסה</button>
@@ -370,11 +376,11 @@ function loginView(){
 function bindLogin(){
   const go=async()=>{
     const phone=$('#phone').value,pin=$('#pin').value;
-    $('#lerr').textContent='';$('#lbtn').disabled=true;
+    $('#lerr').textContent='';$('#lbtn').disabled=true;$('#lbtn').textContent='מתחבר…';
     cred={phone,pin};
     try{await api('login');try{localStorage.setItem('poker-cred',JSON.stringify(cred))}catch(e){}render()}
     catch(e){cred=null;if(e.message==='NEED_PIN'){$('#pin').hidden=false;$('#pin').focus();$('#lerr').textContent='זה טלפון של מנהל. הזן את סיסמת המנהל.'}else $('#lerr').textContent=e.message}
-    finally{const b=$('#lbtn');if(b)b.disabled=false}
+    finally{const b=$('#lbtn');if(b){b.disabled=false;b.textContent='כניסה'}}
   };
   $('#lbtn').onclick=go;
   ['#phone','#pin'].forEach(id=>$(id).onkeydown=e=>{if(e.key==='Enter')go()});
