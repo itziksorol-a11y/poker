@@ -270,10 +270,15 @@ async function api(action,extra){
   if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2);try{localStorage.setItem('poker-view',JSON.stringify({v:V,skew,phone:cred&&cred.phone}))}catch(e){}setSync(false)}
   return j;
 }
+let lastBtn=null;document.addEventListener('click',e=>{const b=e.target.closest('button');if(b)lastBtn=b},true);
 async function act(action,extra){
-  if(busy)return;busy=true;document.body.style.cursor='progress';toast('שולח…');
-  try{const j=await api(action,extra);if(j.msg)toast(j.msg);render();return j}
-  catch(e){toast(e.message)}
+  if(busy){toast('רגע, הפעולה הקודמת עוד נשמרת…',true);return}
+  busy=true;document.body.style.cursor='progress';
+  const btn=lastBtn,old=btn&&btn.innerHTML;
+  if(btn&&document.body.contains(btn)){btn.disabled=true;btn.innerHTML='⏳ שומר…'}
+  toast('⏳ שומר…',true);
+  try{const j=await api(action,extra);toast(j.msg||'✓ נשמר');render();return j}
+  catch(e){toast(e.message);if(btn&&document.body.contains(btn)){btn.disabled=false;btn.innerHTML=old}}
   finally{busy=false;document.body.style.cursor=''}
 }
 async function refresh(){
@@ -313,7 +318,7 @@ function modal(title,body,btns){
 const modalOpen=()=>$('#modal').classList.contains('open');
 $('#mBtns').addEventListener('click',ev=>{const b=ev.target.closest('[data-mi]');if(!b)return;
   $('#modal').classList.remove('open');const f=mCbs[+b.dataset.mi];if(f)f()});
-let tt;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2800)}
+let tt;function toast(t,stay){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);if(!stay)tt=setTimeout(()=>el.classList.remove('show'),2800)}
 
 const HEART='M5 9.2C1.2 6.4 0 4.4 0 2.7 0 1.1 1.2 0 2.6 0 3.7 0 4.5.6 5 1.5 5.5.6 6.3 0 7.4 0 8.8 0 10 1.1 10 2.7 10 4.4 8.8 6.4 5 9.2Z';
 const heart=(x,y,sz,flip)=>`<path d="${HEART}" fill="#c8102e" transform="translate(${x} ${y})${flip?' rotate(180)':''} scale(${sz/10}) translate(-5 -4.6)"/>`;
