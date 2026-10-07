@@ -276,13 +276,17 @@ async function act(action,extra){
   const btn=lastBtn,old=btn&&btn.innerHTML;
   if(btn&&document.body.contains(btn)){btn.disabled=true;btn.innerHTML='⏳ שומר…'}
   toast('⏳ שומר…',true);
-  try{const j=await api(action,extra);toast(j.msg||'✓ נשמר');render();return j}
+  try{const j=await api(action,extra);lastEdit=0;toast(j.msg||'✓ נשמר');render();return j}
   catch(e){toast(e.message);if(btn&&document.body.contains(btn)){btn.disabled=false;btn.innerHTML=old}}
   finally{busy=false;document.body.style.cursor=''}
 }
+// לא מציירים מחדש את הדף בזמן שמקלידים או כשיש שינויים שלא נשמרו, כדי לא למחוק את מה שנכתב
+let lastEdit=0;
+['input','change'].forEach(t=>document.addEventListener(t,e=>{if(e.target.closest('#app')&&e.target.matches('input,select,textarea')&&e.target.id!=='phone'&&e.target.id!=='pin')lastEdit=Date.now()},true));
+const isEditing=()=>{const a=document.activeElement;return (a&&a.closest&&a.closest('#app')&&a.matches('input,select,textarea'))||Date.now()-lastEdit<180000};
 async function refresh(){
   if(!cred||busy||document.hidden)return;
-  try{await api('state');render()}catch(e){if(/קוד|ברשימה/.test(e.message)){logout()}}
+  try{await api('state');if(isEditing())return showAlerts();render()}catch(e){if(/ברשימה|שגויה/.test(e.message)){logout()}}
 }
 
 /* ---------- time ---------- */
