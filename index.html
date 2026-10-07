@@ -417,9 +417,9 @@ function infoBar(){
   return `<div class="infobar"><span class="pill">📅 ${esc(gameLabel())}</span><span class="pill">⏰ הגעה עד ${V.arrival} <span class="muted small">(${V.season})</span></span></div>`;
 }
 function countdownBoxes(){return `<div class="countdown"><div><b id="cdD">0</b><span>ימים</span></div><div><b id="cdH">00</b><span>שעות</span></div><div><b id="cdM">00</b><span>דקות</span></div><div><b id="cdS">00</b><span>שניות</span></div></div>`}
-function choicesHTML(cur,canWait){
+function choicesHTML(cur,canWait,noGo){
   return `<div class="choices">
-    <button class="choice go ${cur==='go'?'sel':''}" data-choose="go">✅ מגיע</button>
+    ${noGo?'':`<button class="choice go ${cur==='go'?'sel':''}" data-choose="go">✅ מגיע</button>`}
     ${canWait?`<button class="choice wait ${cur==='wait'?'sel':''}" data-choose="wait">⏳ ממתין</button>`:''}
     <button class="choice no ${cur==='no'?'sel':''}" data-choose="no">❌ לא מגיע</button></div>`;
 }
@@ -444,11 +444,11 @@ function heroView(){
   let cur=null,line='';
   if(me.status==='seat'){cur='go';line=`🪑 אתה במשחק, מושב ${me.seatNo}. הגעה עד ${V.arrival}. `+(me.promoted?'עלית מההמתנה, אז ביטול לא יגרור עונש.':isLate()?'<span style="color:var(--bad)">עברה השעה 17:00, וביטול עכשיו יגרור השהיה ל-14 יום.</span>':`ביטול בלי עונש עד ${esc(fmtDT(V.deadline))}.`)}
   else if(me.status==='wait'){cur='wait';line=`⏳ אתה ברשימת ההמתנה, מקום ${me.waitNo}. אם יתפנה מקום תקבל התראה ותצטרך לאשר תוך שעה.`}
-  else if(me.status==='no'&&me.timedOut){line='⌛ לא אישרת תוך שעה, והמקום עבר לבא בתור. אפשר להירשם שוב להמתנה (נכנסים לסוף התור).'}
+  else if(me.status==='no'&&me.timedOut){line='⌛ לא אישרת תוך שעה, והמקום עבר לבא בתור. במשחק הזה אפשר רק להיכנס שוב לרשימת ההמתנה, לסוף התור.'}
   else if(me.status==='no'){cur='no';line='סימנת שאתה לא מגיע. אפשר לשנות.'}
   else line=`עוד לא בחרת · ${V.seats.length}/${V.seatsMax} מקומות תפוסים`;
   return `<div class="card hero"><div class="big">${V.seats.length>=V.seatsMax&&me.status!=='seat'?'השולחן מלא. "מגיע" יכניס אותך לרשימת ההמתנה':'ההרשמה פתוחה'}</div>
-    ${choicesHTML(cur,me.status!=='seat')}<div class="status-line">${line}</div></div>`;
+    ${choicesHTML(cur,me.status!=='seat',me.timedOut&&me.status!=='seat')}<div class="status-line">${line}</div></div>`;
 }
 function locationView(){
   if(!V.admin&&!isOpen())return'';
