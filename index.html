@@ -258,11 +258,11 @@ async function api(action,extra){
   if(!API_URL)throw new Error('חסרה כתובת השרת בקובץ config.js');
   const body=JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin},extra||{}));
   let t0,j;
-  for(let attempt=0;attempt<3;attempt++){
+  for(let attempt=0;attempt<2;attempt++){
     t0=Date.now();
-    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),15000);
+    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
     try{const r=await fetch(API_URL,{method:'POST',body,signal:ctl.signal,cache:'no-store',redirect:'follow'});j=await r.json();break}
-    catch(e){if(attempt===2)throw new Error('אין תשובה מהשרת. בדוק את החיבור לאינטרנט ונסה שוב.')}
+    catch(e){if(attempt===1)throw new Error('אין חיבור לשרת. אם יש לך אינטרנט מסונן (נטפרי/רימון) או וואי-פיי של עבודה, נסה דרך הסלולר. אם פתחת מתוך וואטסאפ, פתח ב-Safari או ב-Chrome.')}
     finally{clearTimeout(timer)}
   }
   if(j.error)throw new Error(j.error);
