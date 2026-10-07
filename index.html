@@ -527,7 +527,7 @@ function adminView(){
     ${V.me&&pend.length?`<p style="color:var(--warn)">⏳ ממתינים לאישור אחרי עלייה מההמתנה: ${pend.map(s=>esc(s.name)).join(', ')}</p>`:''}
     <div class="form-grid">
       <div><label for="gDate">תאריך המשחק</label><select id="gDate">${dateOptions(V.gameDate)}</select></div>
-      <div><label for="gOpenD">פתיחת ההרשמה ${V.openCustom?'(מועד שקבעת)':'(ברירת מחדל: חמישי 16:00)'}</label><div style="display:flex;gap:6px"><select id="gOpenD" style="flex:2">${dateOptions(ilInput(V.openAt).slice(0,10))}</select><select id="gOpenH" style="flex:1" dir="ltr">${numOptions(24,1,+ilInput(V.openAt).slice(11,13))}</select><select id="gOpenM" style="flex:1" dir="ltr">${numOptions(60,5,+ilInput(V.openAt).slice(14,16))}</select></div></div>
+      <div><label for="gOpenD">פתיחת ההרשמה ${V.openCustom?'(מועד שקבעת)':'(ברירת מחדל: חמישי 16:00)'}</label><div style="display:flex;gap:6px;flex-wrap:wrap"><select id="gOpenD" style="flex:2;min-width:170px">${dateOptions(ilInput(V.openAt).slice(0,10))}</select><div dir="ltr" style="display:flex;gap:4px;align-items:center;flex:1;min-width:130px"><select id="gOpenH" title="שעה">${numOptions(24,1,+ilInput(V.openAt).slice(11,13))}</select><b>:</b><select id="gOpenM" title="דקות">${numOptions(60,5,+ilInput(V.openAt).slice(14,16))}</select></div></div></div>
       <div><label>שעת הגעה (לפי העונה)</label><input disabled value="${V.arrival} · ${V.season}"></div>
       <div style="grid-column:1/-1"><label for="gLoc">כתובת המשחק (מוצגת רק למי שיש לו מקום בשולחן)</label><input id="gLoc" value="${esc(V.location||'')}" placeholder="רחוב, מספר, עיר"></div>
     </div>
