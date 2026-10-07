@@ -241,7 +241,7 @@ footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
 <div id="modal"><div class="box"><h3 id="mTitle"></h3><div class="body" id="mBody"></div><div class="row" id="mBtns"></div></div></div>
 <div id="toast"></div>
 
-<script src="config.js?v=20261007b"></script>
+<script src="config.js?v=20261007c"></script>
 <script>
 const API_URL=(window.POKER_CONFIG||{}).API_URL||'https://poker.itzikpoker.workers.dev';
 const FELT=(window.POKER_CONFIG||{}).FELT||'burgundy';
@@ -250,7 +250,8 @@ const pad=n=>String(n).padStart(2,'0');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let V=null,cred=null,skew=0,busy=false;
 const setSync=on=>{const el=document.getElementById('sync');if(el)el.hidden=!on};
-try{cred=JSON.parse(localStorage.getItem('poker-cred'))}catch(e){}
+try{localStorage.removeItem('poker-cred');const t=sessionStorage.getItem('poker-token');if(t)cred={phone:localStorage.getItem('poker-phone')||'',token:t}}catch(e){}
+const saveToken=t=>{try{if(t)sessionStorage.setItem('poker-token',t);else sessionStorage.removeItem('poker-token')}catch(e){}};
 const now=()=>Date.now()+skew;
 
 /* ---------- server ---------- */
@@ -266,7 +267,7 @@ async function post(url,body,ms){
 }
 async function api(action,extra){
   if(!API_URL)throw new Error('חסרה כתובת השרת בקובץ config.js');
-  const body=JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin},extra||{}));
+  const body=JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin,token:cred&&cred.token},extra||{}));
   const t0=Date.now();let j=null;
   const order=route==='relay'&&RELAY_URL?['relay','direct']:(RELAY_URL?['direct','relay']:['direct','direct']);
   for(let i=0;i<order.length&&!j;i++){
@@ -275,7 +276,9 @@ async function api(action,extra){
     try{j=await post(url,body,ms);if(via!==route)saveRoute(via)}catch(e){}
   }
   if(!j)throw new Error('אין חיבור לשרת. בדוק את החיבור לאינטרנט ונסה שוב.');
+  if(j.error==='SESSION_EXPIRED'){sessionEnded();throw new Error('צריך להיכנס שוב')}
   if(j.error)throw new Error(j.error);
+  if(j.token&&cred){cred.token=j.token;saveToken(j.token)}
   if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2);try{localStorage.setItem('poker-view',JSON.stringify({v:V,skew,phone:cred&&cred.phone}))}catch(e){}setSync(false)}
   return j;
 }
@@ -296,7 +299,7 @@ let lastEdit=0;
 const isEditing=()=>{const a=document.activeElement;return (a&&a.closest&&a.closest('#app')&&a.matches('input,select,textarea'))||Date.now()-lastEdit<180000};
 async function refresh(){
   if(!cred||busy||document.hidden)return;
-  try{await api('state');if(isEditing())return showAlerts();render()}catch(e){if(/ברשימה|שגויה/.test(e.message)){logout()}}
+  try{await api('state');if(isEditing())return showAlerts();render()}catch(e){}
 }
 
 /* ---------- time ---------- */
@@ -387,14 +390,25 @@ const TG_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M
 function render(){
   document.body.dataset.felt=FELT;
   const chip=$('#userchip');
-  if(!cred||!V){chip.innerHTML='';$('#app').innerHTML=loginView()+(V?tableView(true):'');bindLogin();return}
+  if(!cred||!cred.token||!V){chip.innerHTML='';$('#app').innerHTML=loginView();bindLogin();return}
   const adm=!!V.admin;
   chip.innerHTML=`<div class="userchip">${V.me?(adm?'👑 ':'🙂 ')+esc(V.me.name)+(adm?' (מנהל)':''):'👑 מנהל'}<button id="logout">התנתק</button></div>`;
   $('#logout').onclick=logout;
+  if(V.me&&!adm&&!V.me.tgLinked){$('#app').innerHTML=gateView();$('#logout').onclick=logout;const c=$('#gateCheck');if(c)c.onclick=()=>{refresh();toast('בודק…')};return}
   $('#app').innerHTML=infoBar()+heroView()+locationView()+tgView()+tableView(false)+listsView()+rulesView()+(adm?adminView():'');
   bindMain();tick();showAlerts();
 }
-function logout(){cred=null;V=null;try{localStorage.removeItem('poker-cred');localStorage.removeItem('poker-view')}catch(e){}render()}
+function logout(){if(cred&&cred.token)api('logout').catch(()=>{});sessionEnded()}
+function sessionEnded(){cred=null;V=null;saveToken('');try{localStorage.removeItem('poker-view')}catch(e){}render()}
+function gateView(){
+  return `<div class="card hero alert"><div style="font-size:34px">🔔</div><div class="big">עוד צעד אחד: חבר טלגרם</div>
+    <p>מעכשיו הכניסה לאתר היא עם קוד שהבוט שולח לך בטלגרם, וגם כל ההתראות מגיעות לשם. עושים את זה פעם אחת בלבד.</p>
+    <ol style="text-align:right;display:inline-block;margin:6px 0 12px">
+      <li>לוחצים על הכפתור הכחול</li><li>בטלגרם לוחצים <b>Start</b></li><li>חוזרים לכאן, והאתר נפתח לבד</li></ol><br>
+    <a class="tgbtn" href="${esc(V.me.tgLink)}" target="_blank" rel="noopener">${TG_SVG}<span>חבר טלגרם</span></a>
+    <p class="muted small" style="margin-top:14px">אין לך טלגרם? מורידים אותו מה-App Store או מ-Google Play.</p>
+    <button class="btn btn-ghost" id="gateCheck" style="margin-top:6px">חיברתי, תבדוק</button></div>`;
+}
 function showAlerts(){
   if(!V||!V.admin||!V.admin.alerts.length||modalOpen())return;
   modal('🔄 עדכון מקום בשולחן',V.admin.alerts[0],[{t:'הבנתי',c:'btn-gold',f:()=>act('ackAlert')}]);
@@ -406,21 +420,33 @@ function loginView(){
     <p class="muted">הזן את מספר הטלפון שלך. רק מספרים שהמנהל הוסיף יכולים להיכנס.</p>
     <input id="phone" type="tel" inputmode="tel" placeholder="050-0000000" autocomplete="tel" enterkeyhint="go">
     <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="סיסמת מנהל" style="font-size:20px;text-align:center;letter-spacing:6px" autocomplete="current-password" hidden>
+    <div id="codeBox" hidden><p class="muted" style="margin:8px 0 0">🔐 שלחנו לך קוד של 4 ספרות בטלגרם</p>
+    <input id="code" type="text" inputmode="numeric" maxlength="4" placeholder="קוד מהטלגרם" style="font-size:24px;text-align:center;letter-spacing:10px" autocomplete="one-time-code">
+    <a href="#" id="resend" class="small" style="color:var(--gold2)">שלח קוד חדש</a></div>
     <div class="err" id="lerr"></div>
     <button class="btn btn-gold btn-big" id="lbtn">כניסה</button>
   </div>`;
 }
 function bindLogin(){
   const go=async()=>{
-    const phone=$('#phone').value,pin=$('#pin').value;
+    const phone=$('#phone').value,pin=$('#pin').value,code=$('#codeBox').hidden?'':$('#code').value;
     $('#lerr').textContent='';$('#lbtn').disabled=true;$('#lbtn').textContent='מתחבר…';
     cred={phone,pin};
-    try{await api('login');try{localStorage.setItem('poker-cred',JSON.stringify(cred))}catch(e){}render()}
+    try{
+      const j=await api('login',code?{code}:{});
+      try{localStorage.setItem('poker-phone',phone)}catch(e){}
+      if(j.needCode){cred=null;$('#codeBox').hidden=false;$('#code').value='';$('#code').focus();$('#lbtn').textContent='כניסה';return}
+      render();
+    }
     catch(e){cred=null;if(e.message==='NEED_PIN'){$('#pin').hidden=false;$('#pin').focus();$('#lerr').textContent='זה טלפון של מנהל. הזן את סיסמת המנהל.'}else $('#lerr').textContent=e.message}
     finally{const b=$('#lbtn');if(b){b.disabled=false;b.textContent='כניסה'}}
   };
   $('#lbtn').onclick=go;
-  ['#phone','#pin'].forEach(id=>$(id).onkeydown=e=>{if(e.key==='Enter')go()});
+  ['#phone','#pin','#code'].forEach(id=>$(id).onkeydown=e=>{if(e.key==='Enter')go()});
+  $('#code').oninput=e=>{if(e.target.value.replace(/\D/g,'').length===4)go()};
+  $('#resend').onclick=e=>{e.preventDefault();$('#codeBox').hidden=true;go();toast('נשלח קוד חדש לטלגרם')};
+  $('#phone').oninput=()=>{$('#codeBox').hidden=true;$('#pin').hidden=true};
+  try{const ph=localStorage.getItem('poker-phone');if(ph)$('#phone').value=ph}catch(e){}
 }
 
 function infoBar(){
@@ -529,7 +555,7 @@ function adminView(){
   const rows=A.players.map(p=>`<tr data-row="${p.id}"><td><input data-f="name" value="${esc(p.name)}"></td><td><input data-f="phone" value="${esc(p.phone)}" dir="ltr"></td>
 
     <td>${A.isMain?`<div style="display:flex;gap:6px;align-items:center"><label class="small" style="display:flex;gap:4px;align-items:center;color:var(--text);margin:0;white-space:nowrap"><input type="checkbox" data-f="admin" ${p.admin?'checked':''} style="width:auto;min-width:0"> מנהל</label><input data-f="apin" type="text" inputmode="numeric" maxlength="8" value="${esc(p.adminPin||'')}" placeholder="סיסמה" dir="ltr" style="min-width:70px;width:70px" ${p.admin?'':'hidden'}></div>`:(p.admin?'<span class="small">👑 מנהל</span>':'')}</td>
-    <td class="small">${p.tg?'<span class="ok" title="מחובר לטלגרם">✓ TG</span>':'<span class="muted">–</span>'}</td>
+    <td class="small">${p.tg?`<span class="ok" title="מחובר לטלגרם">✓ TG</span> <a href="#" class="small" style="color:var(--muted)" data-unlink="${p.id}" data-name="${esc(p.name)}">נתק</a>`:'<span class="muted">–</span>'}</td>
     <td><button class="save" data-save="${p.id}">שמור</button></td>
     <td><a class="wa" href="https://wa.me/972${esc(p.phone.slice(1))}?text=${encodeURIComponent(inviteText(p))}" target="_blank" rel="noopener">שלח קישור</a></td>
     <td><button class="x" data-del="${p.id}" data-name="${esc(p.name)}">✕</button></td></tr>`).join('');
@@ -571,6 +597,7 @@ function bindMain(){
   document.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{const tr=b.closest('tr'),g=f=>tr.querySelector(`[data-f="${f}"]`).value;
     act('savePlayer',{player:{id:b.dataset.save,name:g('name'),phone:g('phone'),admin:!!(tr.querySelector('[data-f="admin"]')||{}).checked,adminPin:(tr.querySelector('[data-f="apin"]')||{}).value}})});
   document.querySelectorAll('[data-f="admin"]').forEach(c=>c.onchange=()=>{const i=c.closest('tr').querySelector('[data-f="apin"]');i.hidden=!c.checked;if(c.checked)i.focus()});
+  document.querySelectorAll('[data-unlink]').forEach(b=>b.onclick=e=>{e.preventDefault();modal('לנתק את הטלגרם?',`הטלגרם של ${b.dataset.name} ינותק. בכניסה הבאה הוא יצטרך לחבר את הטלגרם שלו מחדש.`,[{t:'נתק',c:'btn-bad',f:()=>act('unlinkTg',{id:b.dataset.unlink})},{t:'ביטול',c:'btn-ghost'}])});
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>modal('להסיר שחקן?',`${b.dataset.name} יוסר מהרשימה ומהשולחן.`,[
     {t:'הסר',c:'btn-bad',f:()=>act('deletePlayer',{id:b.dataset.del})},{t:'ביטול',c:'btn-ghost'}]));
   on('#addP',()=>act('savePlayer',{player:{name:$('#newName').value,phone:$('#newPhone').value}}));
@@ -614,7 +641,7 @@ setInterval(refresh,20000);
 try{if(API_URL)fetch(route==='relay'&&RELAY_URL?RELAY_URL:API_URL,{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}
 // מציגים מיד את המצב האחרון שנשמר במכשיר, ומעדכנים מהשרת ברקע
 try{const c=JSON.parse(localStorage.getItem('poker-view'));if(cred&&c&&c.phone===cred.phone){V=c.v;skew=c.skew;render();setSync(true)}}catch(e){}
-if(cred)api('state').then(render).catch(e=>{setSync(false);if(/ברשימה|שגויה/.test(e.message)){toast(e.message);logout()}else if(!V){toast(e.message);logout()}else toast(e.message)});else render();
+if(cred)api('state').then(render).catch(e=>{setSync(false);toast(e.message);if(!V)sessionEnded()});else render();
 </script>
 </body>
 </html>
