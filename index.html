@@ -241,7 +241,7 @@ footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
 <div id="modal"><div class="box"><h3 id="mTitle"></h3><div class="body" id="mBody"></div><div class="row" id="mBtns"></div></div></div>
 <div id="toast"></div>
 
-<script src="config.js?v=20261007"></script>
+<script src="config.js?v=20261007b"></script>
 <script>
 const API_URL=(window.POKER_CONFIG||{}).API_URL||'https://poker.itzikpoker.workers.dev';
 const FELT=(window.POKER_CONFIG||{}).FELT||'burgundy';
@@ -254,17 +254,27 @@ try{cred=JSON.parse(localStorage.getItem('poker-cred'))}catch(e){}
 const now=()=>Date.now()+skew;
 
 /* ---------- server ---------- */
+// שני מסלולים לשרת: ישיר (מהיר), וגשר דרך גוגל למי שהטלפון שלו חוסם את הכתובת הישירה (למשל Safari עם ממסר פרטי)
+const RELAY_URL=(window.POKER_CONFIG||{}).RELAY_URL||'';
+let route=(()=>{try{const r=JSON.parse(localStorage.getItem('poker-route')||'null');return r&&Date.now()-r.t<6*36e5?r.via:'direct'}catch(e){return 'direct'}})();
+const saveRoute=via=>{route=via;try{localStorage.setItem('poker-route',JSON.stringify({via,t:Date.now()}))}catch(e){}};
+async function post(url,body,ms){
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),ms);
+  const stop=new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),ms+300));
+  try{return await Promise.race([fetch(url,{method:'POST',body,signal:ctl.signal,cache:'no-store',redirect:'follow'}).then(r=>r.json()),stop])}
+  finally{clearTimeout(timer)}
+}
 async function api(action,extra){
   if(!API_URL)throw new Error('חסרה כתובת השרת בקובץ config.js');
   const body=JSON.stringify(Object.assign({action,phone:cred&&cred.phone,pin:cred&&cred.pin},extra||{}));
-  let t0,j;
-  for(let attempt=0;attempt<2;attempt++){
-    t0=Date.now();
-    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
-    try{const r=await fetch(API_URL,{method:'POST',body,signal:ctl.signal,cache:'no-store',redirect:'follow'});j=await r.json();break}
-    catch(e){if(attempt===1)throw new Error('אין חיבור לשרת. אם יש לך אינטרנט מסונן (נטפרי/רימון) או וואי-פיי של עבודה, נסה דרך הסלולר. אם פתחת מתוך וואטסאפ, פתח ב-Safari או ב-Chrome.')}
-    finally{clearTimeout(timer)}
+  const t0=Date.now();let j=null;
+  const order=route==='relay'&&RELAY_URL?['relay','direct']:(RELAY_URL?['direct','relay']:['direct','direct']);
+  for(let i=0;i<order.length&&!j;i++){
+    const via=order[i],url=via==='relay'?RELAY_URL:API_URL;
+    const ms=via==='direct'?(i===0?3500:6000):30000;
+    try{j=await post(url,body,ms);if(via!==route)saveRoute(via)}catch(e){}
   }
+  if(!j)throw new Error('אין חיבור לשרת. בדוק את החיבור לאינטרנט ונסה שוב.');
   if(j.error)throw new Error(j.error);
   if(j.view){V=j.view;skew=V.now-Math.round((t0+Date.now())/2);try{localStorage.setItem('poker-view',JSON.stringify({v:V,skew,phone:cred&&cred.phone}))}catch(e){}setSync(false)}
   return j;
@@ -601,7 +611,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()}
 setInterval(tick,1000);
 setInterval(refresh,20000);
 // מעירים את השרת כבר כשהדף נפתח, כדי שהכניסה תהיה מהירה
-try{if(API_URL)fetch(API_URL,{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}
+try{if(API_URL)fetch(route==='relay'&&RELAY_URL?RELAY_URL:API_URL,{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}
 // מציגים מיד את המצב האחרון שנשמר במכשיר, ומעדכנים מהשרת ברקע
 try{const c=JSON.parse(localStorage.getItem('poker-view'));if(cred&&c&&c.phone===cred.phone){V=c.v;skew=c.skew;render();setSync(true)}}catch(e){}
 if(cred)api('state').then(render).catch(e=>{setSync(false);if(/ברשימה|שגויה/.test(e.message)){toast(e.message);logout()}else if(!V){toast(e.message);logout()}else toast(e.message)});else render();
