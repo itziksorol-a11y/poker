@@ -241,9 +241,9 @@ footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:12px}
 <div id="modal"><div class="box"><h3 id="mTitle"></h3><div class="body" id="mBody"></div><div class="row" id="mBtns"></div></div></div>
 <div id="toast"></div>
 
-<script src="config.js"></script>
+<script src="config.js?v=20261007"></script>
 <script>
-const API_URL=(window.POKER_CONFIG||{}).API_URL||'';
+const API_URL=(window.POKER_CONFIG||{}).API_URL||'https://poker.itzikpoker.workers.dev';
 const FELT=(window.POKER_CONFIG||{}).FELT||'burgundy';
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
